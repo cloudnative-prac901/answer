@@ -21,7 +21,7 @@ new VpceStack(app, 'VpceStack', {
   ecsSg: net.ecsSg,
 });
 
-// ALB / WAF
+// ALB / WAF　★追加
 const alb = new AlbStack(app, 'AlbStack', {
   env,
   vpc: net.vpc,
