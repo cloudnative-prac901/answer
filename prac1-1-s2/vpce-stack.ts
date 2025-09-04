@@ -17,9 +17,13 @@ export class VpceStack extends Stack {
     super(scope, id, props);
     const { vpc, vpceSg, ecsSg } = props;
 
-    // VPCE用サブネット: vpce-private のみ、各AZで1本割り当て
+    // サブネット: vpce-private、ecs-privateを設定
     const vpceSubnets: ec2.SubnetSelection = {
       subnetGroupName: 'vpce-private',
+      onePerAz: true,
+    };
+    const ecsSubnets: ec2.SubnetSelection = {
+      subnetGroupName: 'ecs-private',
       onePerAz: true,
     };
 
@@ -27,7 +31,7 @@ export class VpceStack extends Stack {
     new ec2.GatewayVpcEndpoint(this, 'S3Gateway', {
       vpc,
       service: ec2.GatewayVpcEndpointAwsService.S3,
-      subnets: [vpceSubnets],
+      subnets: [vpceSubnets, ecsSubnets], 
     });
 
     // 5. Interfaceエンドポイント作成
