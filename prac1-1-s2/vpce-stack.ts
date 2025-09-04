@@ -17,8 +17,11 @@ export class VpceStack extends Stack {
     super(scope, id, props);
     const { vpc, vpceSg, ecsSg } = props;
 
-    // isolated サブネットを割り当て
-    const vpceSubnets: ec2.SubnetSelection = { subnets: vpc.isolatedSubnets };
+    // VPCE用サブネット: vpce-private のみ、各AZで1本割り当て
+    const vpceSubnets: ec2.SubnetSelection = {
+      subnetGroupName: 'vpce-private',
+      onePerAz: true,
+    };
 
     // 4. Gatewayエンドポイント作成（S3）
     new ec2.GatewayVpcEndpoint(this, 'S3Gateway', {
