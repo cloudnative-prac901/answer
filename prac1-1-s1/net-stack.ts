@@ -80,7 +80,7 @@ export class NetStack extends Stack {
     // VPC Endpoint: ECSからHTTPSアクセスを許可
     this.vpceSg.addIngressRule(this.ecsSg, ec2.Port.tcp(443), 'ECS-to-VPCE');
 
-    // 出力
+    // 7. 出力
     new CfnOutput(this, 'VpcId',   { value: this.vpc.vpcId });
     new CfnOutput(this, 'EcsSgId',   { value: this.ecsSg.securityGroupId });
     new CfnOutput(this, 'AlbSgId',   { value: this.albSg.securityGroupId });
