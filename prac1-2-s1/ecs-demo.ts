@@ -22,5 +22,12 @@ new VpceStack(app, 'VpceStack', {
   ecsSg: net.ecsSg,
 });
 
+// ALB / WAF
+const alb = new AlbStack(app, 'AlbStack', {
+  env,
+  vpc: net.vpc,
+  albSg: net.albSg,
+});
+
 // ECR Stack ★追加
 const ecr = new EcrStack(app, 'EcrStack', { env });
