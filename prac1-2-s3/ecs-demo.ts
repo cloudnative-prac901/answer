@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import { App } from 'aws-cdk-lib';
 import { NetStack } from '../lib/net-stack';
 import { VpceStack } from '../lib/vpce-stack';
+import { AlbStack } from '../lib/alb-stack';
 import { EcrStack } from '../lib/ecr-stack';
 import { EcsStack } from '../lib/ecs-stack';   // ★追加
 
