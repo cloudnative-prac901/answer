@@ -1,0 +1,16 @@
+// ECRにログイン
+ecs-demo $ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+ecs-demo $ ECR_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+ecs-demo $ aws ecr get-login-password | docker login --username AWS --password-stdin ${ECR_URL}
+
+// Nginxイメージをpull
+ecs-demo $ docker pull nginx:1.29.0
+ecs-demo $ docker images		//nginxのイメージが存在すること
+
+// Nginxのイメージにタグ付け
+ecs-demo $ REPO="${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com"
+ecs-demo $ docker tag nginx:1.29.0 $REPO/customer-info/app:v0.1.1		//Nginxイメージにタグ付け
+ecs-demo $ docker images		　//タグ付けしたイメージが追加されていること
+
+// ECRにイメージをpush
+ecs-demo $ docker push $REPO/customer-info/app:v0.1.1
