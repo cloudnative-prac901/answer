@@ -1,0 +1,26 @@
+## ディレクトリ作成 & 移動
+~ $ mkdir -p ~/environment/ecs-demo
+~ $ cd  ~/environment/ecs-demo
+
+## AWS CDK初期化（TypeScript）
+ecs-demo $ cdk init app --language typescript
+
+## パッケージインストールおよびコンパイル
+ecs-demo $ sudo npm install
+ecs-demo $ sudo npm install -g typescript
+ecs-demo $ sudo npm run build
+
+## AWSアカウントID の設定
+ecs-demo $ AWS_ACCOUNT_ID=$(aws \
+  sts get-caller-identity --query Account --output text)
+
+## パラメータ確認（正しい値が表示されていること）
+ecs-demo $ echo $AWS_ACCOUNT_ID   # 12桁のID
+ecs-demo $ echo $AWS_REGION           # 例：ap-northeast-1
+
+## ブートストラップ（リージョンごと一度だけ）
+ecs-demo $ cdk bootstrap \
+  aws://$AWS_ACCOUNT_ID/$AWS_REGION
+
+## CDKコマンド
+ecs-demo $ cdk version
