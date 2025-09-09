@@ -5,8 +5,8 @@ import { NetStack } from '../lib/net-stack';
 import { VpceStack } from '../lib/vpce-stack';
 import { AlbStack } from '../lib/alb-stack';
 import { EcrStack } from '../lib/ecr-stack';
+import { RdsStack } from '../lib/rds-stack';    //★追加
 import { EcsStack } from '../lib/ecs-stack';
-import { ConnectionStack } from '../lib/connection-stack';   // ★追加
 
 const app = new App();
 const env = {
@@ -35,6 +35,13 @@ const alb = new AlbStack(app, 'AlbStack', {
 // ECR
 const ecr = new EcrStack(app, 'EcrStack', { env });
 
+// RDS ★追加
+const rds = new RdsStack(app, 'RdsStack', {
+  env,
+  vpc: net.vpc,
+  dbSg: net.dbSg,
+});
+
 // ECS / Fargate
 new EcsStack(app, 'EcsStack', {
   env,
@@ -43,6 +50,3 @@ new EcsStack(app, 'EcsStack', {
   repo       : ecr.repository,
   targetGroup: alb.targetGroup,
 });
-
-// CodeConnection Stack  ★追加
-const conn = new ConnectionStack(app, 'ConnectionStack', { env });
