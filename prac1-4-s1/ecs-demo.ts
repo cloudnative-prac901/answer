@@ -24,6 +24,7 @@ new VpceStack(app, 'VpceStack', {
   vpc: net.vpc,
   vpceSg: net.vpceSg,
   ecsSg: net.ecsSg,
+  jumpSg: net.jumpSg,
 });
 
 // ALB / WAF
