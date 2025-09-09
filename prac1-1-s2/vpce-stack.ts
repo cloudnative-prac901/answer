@@ -9,13 +9,14 @@ export interface VpceStackProps extends StackProps {
   vpc: ec2.IVpc;
   vpceSg: ec2.ISecurityGroup;
   ecsSg: ec2.ISecurityGroup;
+  jumpSg: ec2.ISecurityGroup;
 }
 
 // 3. スタック初期化
 export class VpceStack extends Stack {
   constructor(scope: Construct, id: string, props: VpceStackProps) {
     super(scope, id, props);
-    const { vpc, vpceSg, ecsSg } = props;
+    const { vpc, vpceSg, ecsSg, jumpSg } = props;
 
     // サブネット: vpce-private、ecs-privateを設定
     const vpceSubnets: ec2.SubnetSelection = {
@@ -26,12 +27,16 @@ export class VpceStack extends Stack {
       subnetGroupName: 'ecs-private',
       onePerAz: true,
     };
+    const jumpSubnets: ec2.SubnetSelection = {
+      subnetGroupName: 'jumpbox-public',
+      onePerAz: true,
+    };
 
     // 4. Gatewayエンドポイント作成（S3）
     new ec2.GatewayVpcEndpoint(this, 'S3Gateway', {
       vpc,
       service: ec2.GatewayVpcEndpointAwsService.S3,
-      subnets: [vpceSubnets, ecsSubnets], 
+      subnets: [vpceSubnets, ecsSubnets, jumpSubnets], 
     });
 
     // 5. Interfaceエンドポイント作成
