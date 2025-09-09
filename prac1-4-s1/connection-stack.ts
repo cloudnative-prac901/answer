@@ -10,6 +10,7 @@ export class ConnectionStack extends cdk.Stack {
   // 3. スタック初期化
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    
     // 4. コネクション作成
     const conn = new codestar.CfnConnection(this, 'GitHubConnection', {
       connectionName: 'CustomerInfoGitHub',
