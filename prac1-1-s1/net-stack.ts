@@ -46,14 +46,14 @@ export class NetStack extends Stack {
     });
 
     // DbSg
-    const dbSg = new ec2.SecurityGroup(this, 'DbSg', {
+    this.dbSg = new ec2.SecurityGroup(this, 'DbSg', {
       vpc: this.vpc,
       description: 'Security Group for RDS',
       allowAllOutbound: false,
     });
 
     // JumpSg
-    const jumpSg = new ec2.SecurityGroup(this, 'JumpSg', {
+    this.jumpSg = new ec2.SecurityGroup(this, 'JumpSg', {
       vpc: this.vpc,
       description: 'Security Group for JumpBox',
       allowAllOutbound: true,
