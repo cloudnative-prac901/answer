@@ -11,6 +11,7 @@ export class NetStack extends Stack {
   public readonly vpceSg: ec2.SecurityGroup;
   public readonly albSg: ec2.SecurityGroup;
   public readonly dbSg: ec2.SecurityGroup;
+  public readonly jumpSg: ec2.SecurityGroup;
 
 // 3. スタック初期化
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -75,8 +76,8 @@ export class NetStack extends Stack {
     this.ecsSg.addIngressRule(this.albSg, ec2.Port.tcp(80), 'ALB-to-ECS');
 
     // DB: ECSおよびJumpBoxからMySQLアクセスを許可
-    dbSg.addIngressRule(this.ecsSg, ec2.Port.tcp(3306), 'ECS-to-DB');
-    dbSg.addIngressRule(jumpSg, ec2.Port.tcp(3306), 'JumpBox-to-DB');
+    this.dbSg.addIngressRule(this.ecsSg, ec2.Port.tcp(3306), 'ECS-to-DB');
+    this.dbSg.addIngressRule(this.jumpSg, ec2.Port.tcp(3306), 'JumpBox-to-DB');
 
     // VPC Endpoint: ECSからHTTPSアクセスを許可
     this.vpceSg.addIngressRule(this.ecsSg, ec2.Port.tcp(443), 'ECS-to-VPCE');
@@ -85,8 +86,8 @@ export class NetStack extends Stack {
     new CfnOutput(this, 'VpcId',   { value: this.vpc.vpcId });
     new CfnOutput(this, 'EcsSgId',   { value: this.ecsSg.securityGroupId });
     new CfnOutput(this, 'AlbSgId',   { value: this.albSg.securityGroupId });
-    new CfnOutput(this, 'JumpSgId',  { value: jumpSg.securityGroupId });
-    new CfnOutput(this, 'DbSgId',    { value: dbSg.securityGroupId });
+    new CfnOutput(this, 'JumpSgId',  { value: this.jumpSg.securityGroupId });
+    new CfnOutput(this, 'DbSgId',    { value: this.dbSg.securityGroupId });
     new CfnOutput(this, 'VpceSgId',  { value: this.vpceSg.securityGroupId });
   }
 }
