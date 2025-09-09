@@ -10,6 +10,7 @@ export class NetStack extends Stack {
   public readonly ecsSg: ec2.SecurityGroup;
   public readonly vpceSg: ec2.SecurityGroup;
   public readonly albSg: ec2.SecurityGroup;
+  public readonly dbSg: ec2.SecurityGroup;
 
 // 3. スタック初期化
   constructor(scope: Construct, id: string, props?: StackProps) {
