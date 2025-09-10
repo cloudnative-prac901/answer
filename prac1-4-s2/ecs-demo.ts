@@ -65,4 +65,5 @@ const iam = new IamStack(app, 'IamStack', {
   ghOwner     : 'xxx',  // ★GitHubユーザー名（ご自身の環境に合わせて適宜変更してください）
   ghRepo      : 'customer-info',  // GitHubリポジトリ名
   gitHubConnectionArn: conn.connectionArn,
+  appSecretArn: rds.appSecret.secretArn,  // アプリケーション用の認証情報
 });
