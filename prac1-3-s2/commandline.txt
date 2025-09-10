@@ -1,0 +1,103 @@
+// CloudShell VPCにログインしていることが前提です
+// Secrets ManagerのDB接続情報を確認
+~ $ aws secretsmanager get-secret-value \
+>   --secret-id customer-info-db-credentials \
+>   --query SecretString \
+>   --output text | jq .
+
+{
+  "password": "xxx",
+  "dbname": "customer_info",
+  "engine": "mysql",
+  "port": 3306,
+  "dbInstanceIdentifier": "customer-info-db",
+  "host": "customer-info-db.xxx.ap-northeast-1.rds.amazonaws.com",
+  "username": "admin"
+}
+
+// MySQLクライアントでのログイン
+~ $ mysql -h customer-info-db.xxx.ap-northeast-1.rds.amazonaws.com -u admin -p
+Enter password:
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 234
+Server version: 8.0.42 Source distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customer_info      |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.019 sec)
+
+// ユーザー確認
+MySQL [(none)]> SELECT  host, user FROM mysql.user;
++-----------+--------------------+
+| host      | user               |
++-----------+--------------------+
+| %         | admin              |
+| %         | rds_superuser_role |
+| localhost | mysql.infoschema   |
+| localhost | mysql.session      |
+| localhost | mysql.sys          |
+| localhost | rdsadmin           |
++-----------+--------------------+
+6 rows in set (0.010 sec)
+
+// DB切り替え
+MySQL [(none)]> USE customer_info;
+Database changed
+
+// customersテーブル作成
+MySQL [customer_info]> CREATE TABLE customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  age INT,
+  email VARCHAR(100) UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+Query OK, 0 rows affected (0.073 sec)
+
+// customersテーブル構成確認
+MySQL [customer_info]> DESCRIBE customers;
++------------+--------------+------+-----+-------------------+-------------------+
+| Field      | Type         | Null | Key | Default           | Extra             |
++------------+--------------+------+-----+-------------------+-------------------+
+| id         | int          | NO   | PRI | NULL              | auto_increment    |
+| name       | varchar(50)  | NO   |     | NULL              |                   |
+| age        | int          | YES  |     | NULL              |                   |
+| email      | varchar(100) | YES  | UNI | NULL              |                   |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++------------+--------------+------+-----+-------------------+-------------------+
+5 rows in set (0.011 sec)
+
+// データ登録（5件分）
+MySQL [customer_info]> INSERT INTO customers (name, age, email) VALUES
+('山田 太郎', 28, 'taro.yamada@example.com'),
+('佐藤 花子', 34, 'hanako.sato@example.com'),
+('鈴木 一郎', 22, 'ichiro.suzuki@example.com'),
+('高橋 美咲', 41, 'misaki.takahashi@example.com'),
+('中村 健', 30, 'ken.nakamura@example.com');
+Query OK, 5 rows affected (0.007 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+// データ確認
+MySQL [customer_info]> SELECT * FROM customers;
++----+---------------+------+------------------------------+---------------------+
+| id | name          | age  | email                        | created_at          |
++----+---------------+------+------------------------------+---------------------+
+|  1 | 山田 太郎     |   28 | taro.yamada@example.com      | 2025-09-09 20:50:57 |
+|  2 | 佐藤 花子     |   34 | hanako.sato@example.com      | 2025-09-09 20:50:57 |
+|  3 | 鈴木 一郎     |   22 | ichiro.suzuki@example.com    | 2025-09-09 20:50:57 |
+|  4 | 高橋 美咲     |   41 | misaki.takahashi@example.com | 2025-09-09 20:50:57 |
+|  5 | 中村 健       |   30 | ken.nakamura@example.com     | 2025-09-09 20:50:57 |
++----+---------------+------+------------------------------+---------------------+
+5 rows in set (0.001 sec)
