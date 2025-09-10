@@ -1,0 +1,38 @@
+// CloudShell VPCに接続している前提とする
+// MySQLのインストール
+~ $ sudo dnf makecache
+~ $ sudo dnf install -y mariadb105  // ★MySQL単体のパッケージがないため、MySQLを含むMariaDB105を代替でインストール
+
+// Secrets ManagerからDB接続情報を確認
+~ $ aws secretsmanager get-secret-value \
+  --secret-id customer-info-db-credentials \
+  --query SecretString \
+  --output text | jq .
+{
+  "password": “xxxxxxxxx",
+  "dbname": "customer_info",
+  "engine": "mysql",
+  "port": 3306,
+  "dbInstanceIdentifier": "customer-info-db",
+  "host": "customer-info-db.xxxxx.ap-northeast-1.rds.amazonaws.com",
+  "username": "admin"
+}
+
+// MySQLクライアントでログイン
+// DB接続情報のhost、username、 passwordを利用します
+~ $ mysql -h <host> -u <username> -p
+Enter password: <password>
+
+// 初期DBの確認
+MySQL [(none)]> SHOW DATABASES;
+
++-----------------------+
+| Database			     		|
++-----------------------+
+| customer_info			    |  // ★初期DBが構築されていることを確認しましょう
+| information_schema	  |
+| mysql						    	|
+| performance_schema	  |
+| sys								    |
++-----------------------+
+5 rows in set (0.023 sec)
