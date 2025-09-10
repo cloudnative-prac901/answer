@@ -15,17 +15,30 @@ export interface RdsStackProps extends cdk.StackProps {
 export class RdsStack extends cdk.Stack {
   public readonly dbInstance: rds.DatabaseInstance;
   public readonly dbSecret: secretsmanager.ISecret;
+  public readonly appSecret: secretsmanager.ISecret;
 
   constructor(scope: Construct, id: string, props: RdsStackProps) {
     super(scope, id, props);
 
-    // 4. シークレット作成（DBパスワードをSecrets Managerで管理）
+    // 4. シークレット作成（admin）
     this.dbSecret = new rds.DatabaseSecret(this, 'CustomerInfoDbSecret', {
       secretName: 'customer-info-db-credentials',
       username: 'admin',
     });
 
-    // 5. RDS MySQLインスタンス作成
+    // 5. シークレット作成（app_user）
+    const appSecret = new secretsmanager.Secret(this, 'CustomerInfoAppSecret', {
+      secretName: 'customer-info-app-credentials',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'app_user' }),
+        generateStringKey: 'password',
+        excludePunctuation: true,
+      },
+    });
+
+    this.appSecret = appSecret;
+
+    // 6. RDS MySQLインスタンス作成
     this.dbInstance = new rds.DatabaseInstance(this, 'CustomerInfoDb', {
       engine: rds.DatabaseInstanceEngine.mysql({
         version: rds.MysqlEngineVersion.VER_8_0_42,
@@ -45,12 +58,15 @@ export class RdsStack extends cdk.Stack {
       databaseName: 'customer_info',              // ★初期DB名
     });
 
-    // 6. 出力
+    // 7. 出力
     new cdk.CfnOutput(this, 'CustomerInfoDbEndpoint', {
       value: this.dbInstance.dbInstanceEndpointAddress,
     });
     new cdk.CfnOutput(this, 'CustomerInfoDbSecretName', {
       value: this.dbSecret.secretName,
+    });
+    new cdk.CfnOutput(this, 'AppSecretName', {
+      value: this.appSecret.secretName,
     });
   }
 }
