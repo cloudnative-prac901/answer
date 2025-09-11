@@ -68,5 +68,8 @@ export class RdsStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'AppSecretName', {
       value: this.appSecret.secretName,
     });
+    new cdk.CfnOutput(this, 'AppSecretArn', {
+      value: this.appSecret.secretArn,
+    });
   }
 }
