@@ -1,0 +1,381 @@
+~ $ cd environment/ecs-demo/
+ecs-demo $ GH_REPO=customer-info
+ecs-demo $ GH_OWNER=<your github account ID>
+ecs-demo $ GH_TOKEN="ghp_xxx"  //GitHubで払い出したPATを入力
+
+ecs-demo $ sudo dnf install -y dnf-plugins-core
+Amazon Linux 2023 repository                                                                                                                                                                                            70 MB/s |  45 MB     00:00    
+Last metadata expiration check: 0:00:16 ago on Thu 11 Sep 2025 05:33:06 AM UTC.
+Dependencies resolved.
+=======================================================================================================================================================================================================================================================
+ Package                                                            Architecture                                     Version                                                               Repository                                             Size
+=======================================================================================================================================================================================================================================================
+Installing:
+ dnf-plugins-core                                                   noarch                                           4.3.0-13.amzn2023.0.5                                                 amazonlinux                                            33 k
+Installing dependencies:
+ dbus-libs                                                          x86_64                                           1:1.12.28-1.amzn2023.0.1                                              amazonlinux                                           153 k
+ python3-dateutil                                                   noarch                                           1:2.8.1-3.amzn2023.0.2                                                amazonlinux                                           289 k
+ python3-dbus                                                       x86_64                                           1.2.18-1.amzn2023.0.2                                                 amazonlinux                                           134 k
+ python3-distro                                                     noarch                                           1.5.0-5.amzn2023.0.2                                                  amazonlinux                                            36 k
+ python3-dnf-plugins-core                                           noarch                                           4.3.0-13.amzn2023.0.5                                                 amazonlinux                                           232 k
+ python3-setuptools                                                 noarch                                           59.6.0-2.amzn2023.0.6                                                 amazonlinux                                           941 k
+ python3-six                                                        noarch                                           1.15.0-5.amzn2023.0.2                                                 amazonlinux                                            36 k
+ python3-systemd                                                    x86_64                                           235-51.amzn2023.0.2                                                   amazonlinux                                            91 k
+
+Transaction Summary
+=======================================================================================================================================================================================================================================================
+Install  9 Packages
+
+Total download size: 1.9 M
+Installed size: 9.3 M
+Downloading Packages:
+(1/9): dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch.rpm                                                                                                                                                               538 kB/s |  33 kB     00:00    
+(2/9): dbus-libs-1.12.28-1.amzn2023.0.1.x86_64.rpm                                                                                                                                                                     1.3 MB/s | 153 kB     00:00    
+(3/9): python3-dateutil-2.8.1-3.amzn2023.0.2.noarch.rpm                                                                                                                                                                2.1 MB/s | 289 kB     00:00    
+(4/9): python3-distro-1.5.0-5.amzn2023.0.2.noarch.rpm                                                                                                                                                                  1.1 MB/s |  36 kB     00:00    
+(5/9): python3-dbus-1.2.18-1.amzn2023.0.2.x86_64.rpm                                                                                                                                                                   1.5 MB/s | 134 kB     00:00    
+(6/9): python3-six-1.15.0-5.amzn2023.0.2.noarch.rpm                                                                                                                                                                    1.0 MB/s |  36 kB     00:00    
+(7/9): python3-setuptools-59.6.0-2.amzn2023.0.6.noarch.rpm                                                                                                                                                              15 MB/s | 941 kB     00:00    
+(8/9): python3-dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch.rpm                                                                                                                                                       2.7 MB/s | 232 kB     00:00    
+(9/9): python3-systemd-235-51.amzn2023.0.2.x86_64.rpm                                                                                                                                                                  1.0 MB/s |  91 kB     00:00    
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                  6.2 MB/s | 1.9 MB     00:00     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                                                                                               1/1 
+  Installing       : python3-systemd-235-51.amzn2023.0.2.x86_64                                                                                                                                                                                    1/9 
+  Installing       : python3-six-1.15.0-5.amzn2023.0.2.noarch                                                                                                                                                                                      2/9 
+  Installing       : python3-dateutil-1:2.8.1-3.amzn2023.0.2.noarch                                                                                                                                                                                3/9 
+  Installing       : python3-setuptools-59.6.0-2.amzn2023.0.6.noarch                                                                                                                                                                               4/9 
+  Installing       : python3-distro-1.5.0-5.amzn2023.0.2.noarch                                                                                                                                                                                    5/9 
+  Installing       : dbus-libs-1:1.12.28-1.amzn2023.0.1.x86_64                                                                                                                                                                                     6/9 
+  Installing       : python3-dbus-1.2.18-1.amzn2023.0.2.x86_64                                                                                                                                                                                     7/9 
+  Installing       : python3-dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch                                                                                                                                                                         8/9 
+  Installing       : dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch                                                                                                                                                                                 9/9 
+  Running scriptlet: dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch                                                                                                                                                                                 9/9 
+  Verifying        : dbus-libs-1:1.12.28-1.amzn2023.0.1.x86_64                                                                                                                                                                                     1/9 
+  Verifying        : dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch                                                                                                                                                                                 2/9 
+  Verifying        : python3-dateutil-1:2.8.1-3.amzn2023.0.2.noarch                                                                                                                                                                                3/9 
+  Verifying        : python3-dbus-1.2.18-1.amzn2023.0.2.x86_64                                                                                                                                                                                     4/9 
+  Verifying        : python3-distro-1.5.0-5.amzn2023.0.2.noarch                                                                                                                                                                                    5/9 
+  Verifying        : python3-dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch                                                                                                                                                                         6/9 
+  Verifying        : python3-setuptools-59.6.0-2.amzn2023.0.6.noarch                                                                                                                                                                               7/9 
+  Verifying        : python3-six-1.15.0-5.amzn2023.0.2.noarch                                                                                                                                                                                      8/9 
+  Verifying        : python3-systemd-235-51.amzn2023.0.2.x86_64                                                                                                                                                                                    9/9 
+
+Installed:
+  dbus-libs-1:1.12.28-1.amzn2023.0.1.x86_64               dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch     python3-dateutil-1:2.8.1-3.amzn2023.0.2.noarch   python3-dbus-1.2.18-1.amzn2023.0.2.x86_64    python3-distro-1.5.0-5.amzn2023.0.2.noarch  
+  python3-dnf-plugins-core-4.3.0-13.amzn2023.0.5.noarch   python3-setuptools-59.6.0-2.amzn2023.0.6.noarch   python3-six-1.15.0-5.amzn2023.0.2.noarch         python3-systemd-235-51.amzn2023.0.2.x86_64  
+
+Complete!
+
+ecs-demo $ sudo dnf config-manager \
+>   --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+Adding repo from: https://cli.github.com/packages/rpm/gh-cli.repo
+
+ecs-demo $ sudo dnf install -y gh
+packages for the GitHub CLI                                                                                                                                                                                             12 kB/s | 2.8 kB     00:00    
+Dependencies resolved.
+=======================================================================================================================================================================================================================================================
+ Package                                                 Architecture                                                Version                                                         Repository                                                   Size
+=======================================================================================================================================================================================================================================================
+Installing:
+ gh                                                      x86_64                                                      2.79.0-1                                                        gh-cli                                                       18 M
+
+Transaction Summary
+=======================================================================================================================================================================================================================================================
+Install  1 Package
+
+Total download size: 18 M
+Installed size: 52 M
+Downloading Packages:
+gh_2.79.0_linux_amd64.rpm                                                                                                                                                                                               11 MB/s |  18 MB     00:01    
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                                   11 MB/s |  18 MB     00:01     
+packages for the GitHub CLI                                                                                                                                                                                            5.0 kB/s | 4.7 kB     00:00    
+Importing GPG key 0x75716059:
+ Userid     : "GitHub CLI <opensource+cli@github.com>"
+ Fingerprint: 2C61 0620 1985 B60E 6C7A C873 23F3 D4EA 7571 6059
+ From       : https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x23F3D4EA75716059
+Key imported successfully
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                                                                                               1/1 
+  Installing       : gh-2.79.0-1.x86_64                                                                                                                                                                                                            1/1 
+  Running scriptlet: gh-2.79.0-1.x86_64                                                                                                                                                                                                            1/1 
+  Verifying        : gh-2.79.0-1.x86_64                                                                                                                                                                                                            1/1 
+
+Installed:
+  gh-2.79.0-1.x86_64                                                                                                                                                                                                                                   
+
+Complete!
+
+ecs-demo $ echo $GH_TOKEN | gh auth login --with-token
+ecs-demo $ gh repo create $GH_OWNER/$GH_REPO --public --confirm
+Flag --confirm has been deprecated, Pass any argument to skip confirmation prompt
+✓ Created repository cloudnative-prac901/customer-info on github.com
+  https://github.com/cloudnative-prac901/customer-info
+ecs-demo $ mkdir -p ~/github && cd ~/github
+github $ git clone https://github.com/$GH_OWNER/$GH_REPO.git
+Cloning into 'customer-info'...
+warning: You appear to have cloned an empty repository.
+
+github $ ll
+total 4
+drwxr-xr-x. 3 cloudshell-user cloudshell-user 4096 Sep 11 05:36 customer-info
+
+github $ cd customer-info
+
+customer-info $ ll
+total 0
+
+customer-info $ ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+customer-info $ echo "$ACCOUNT_ID"
+xxx
+
+customer-info $ mkdir -p app nginx .github/workflows
+customer-info $ ll
+total 8
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:43 app
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:43 nginx
+
+customer-info $ ll .github/
+total 4
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:43 workflows
+
+customer-info $ cat > Dockerfile <<'DOCKER'
+> FROM python:3.11-slim
+> 
+> RUN apt-get update && apt-get install -y nginx curl
+> 
+> WORKDIR /app
+> 
+> COPY requirements.txt ./
+> RUN pip install --no-cache-dir -r requirements.txt
+> 
+> COPY app.py /app/app.py
+> COPY nginx.conf /etc/nginx/sites-enabled/default
+> # デフォルトのindex.htmlは削除
+> RUN rm -f /usr/share/nginx/html/index.html
+> 
+> CMD service nginx start && gunicorn -b 127.0.0.1:5000 app:app
+> 
+> DOCKER
+
+customer-info $ cat > nginx/nginx.conf <<'NGINX'
+> server {
+>     listen 80;
+> 
+>     location / {
+>         proxy_pass http://127.0.0.1:5000;
+>     }
+> 
+>     location /healthcheck {
+>         proxy_pass http://127.0.0.1:5000/healthcheck;
+>     }
+> }
+> NGINX
+
+customer-info $ cat > .gitignore <<'GI'
+> __pycache__/
+> *.py[cod]
+> .venv/
+> .env
+> *.log
+> .vscode/
+> GI
+
+customer-info $ cat > requirements.txt <<'REQ'
+> Flask
+> gunicorn
+> pymysql
+> boto3
+> REQ
+
+customer-info $ cat > .dockerignore <<'DI'
+> __pycache__
+> *.pyc
+> *.pyo
+> .git
+> .vscode
+> DI
+
+customer-info $ cat > README.md <<'MD'
+> # customer-info
+> 
+> Flask + Nginx + Gunicorn のサンプルアプリ。  
+> 
+> # ローカル起動
+> ```bash
+> docker build -t customer-info:dev .
+> docker run -p 8080:80 \
+>   -e DB_HOST=localhost -e DB_USER=user -e DB_PASSWORD=pass -e DB_NAME=sample \
+>   customer-info:dev
+> # http://localhost:8080 へアクセス
+> MD
+
+customer-info $ cat > .github/workflows/ci.yml <<'YAML'
+> name: CI (Kick CodePipeline)
+> 
+> on:
+>   push:
+>     branches: [ main ]
+>   pull_request:
+> 
+> permissions:
+>   id-token: write
+>   contents: read
+> 
+> jobs:
+>   kick-pipeline:
+>     runs-on: ubuntu-latest
+>     steps:
+>       - uses: actions/checkout@v4
+>       - name: Configure AWS credentials via OIDC
+>         uses: aws-actions/configure-aws-credentials@v4
+>         with:
+>           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubOIDCRole
+>           role-session-name: GitHubActionsSession
+>           aws-region: ap-northeast-1
+> 
+>       - name: Start CodePipeline
+>         run: aws codepipeline start-pipeline-execution --name CustomerInfoPipeline
+> 
+> YAML
+
+customer-info $ cat > app/app.py <<'PY'
+> from flask import Flask
+> import pymysql
+> import boto3
+> import json
+> import os
+> 
+> # PyMySQL を MySQLdb として使う
+> pymysql.install_as_MySQLdb()
+> 
+> app = Flask(__name__)
+> 
+> # ===== Secrets Manager から DB 認証情報を取得 =====
+> def load_db_credentials():
+>     secret_name = os.environ.get("DB_SECRET_NAME", "customer-info-app-credentials")
+>     region_name = os.environ.get("AWS_REGION", "ap-northeast-1")
+>     client = boto3.client("secretsmanager", region_name=region_name)
+>     secret_value = client.get_secret_value(SecretId=secret_name)
+>     return json.loads(secret_value["SecretString"])
+> 
+> # 起動時にキャッシュ
+> DB_CREDS = load_db_credentials()   # {"username":"app_user","password":"..."}
+> DB_HOST  = os.environ["DB_HOST"]   # 例: customer-info.xxxxxx.ap-northeast-1.rds.amazonaws.com
+> DB_NAME  = os.environ.get("DB_NAME", "customer_info")
+> 
+> def get_connection():
+>     return pymysql.connect(
+>         host=DB_HOST,
+>         user=DB_CREDS["username"],
+>         password=DB_CREDS["password"],
+>         database=DB_NAME,
+>         port=int(DB_CREDS.get("port", 3306)),
+>         charset="utf8mb4",
+>         cursorclass=pymysql.cursors.DictCursor,
+>         connect_timeout=5,
+>         autocommit=True,
+>     )
+>
+> @app.route("/")
+> def index():
+>     try:
+>         with get_connection() as conn, conn.cursor() as cur:
+>             cur.execute("""
+>                 SELECT id, name, age, email, created_at
+>                 FROM customers
+>                 ORDER BY id ASC
+>             """)
+>             rows = cur.fetchall()
+>
+>         html = [
+>             "<!doctype html><meta charset='utf-8'>",
+>             "<h1>顧客一覧（customers）</h1>",
+>             "<table border='1' cellpadding='6' cellspacing='0'>",
+>             "<tr><th>ID</th><th>名前</th><th>年齢</th><th>Email</th><th>登録日時</th></tr>"
+>         ]
+>         for r in rows:
+>             html.append(
+>                 f"<tr><td>{r['id']}</td><td>{r['name']}</td><td>{r['age']}</td>"
+>                 f"<td>{r['email']}</td><td>{r['created_at']}</td></tr>"
+>             )
+>         html.append("</table>")
+>         return "\n".join(html)
+> 
+>     except Exception as e:
+>         return f"<pre>DB接続エラー：{e}</pre>", 500
+> 
+> @app.route("/healthcheck")
+> def healthcheck():
+>     return "OK", 200
+> 
+> PY
+
+customer-info $ ll
+total 20
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:50 app
+-rw-r--r--. 1 cloudshell-user cloudshell-user  387 Sep 11 05:44 Dockerfile
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:44 nginx
+-rw-r--r--. 1 cloudshell-user cloudshell-user  301 Sep 11 05:45 README.md
+-rw-r--r--. 1 cloudshell-user cloudshell-user   29 Sep 11 05:45 requirements.txt
+
+customer-info $ cd app
+app $ ll
+total 4
+-rw-r--r--. 1 cloudshell-user cloudshell-user 2231 Sep 11 05:50 app.py
+
+app $ cd ../
+customer-info $ ll
+total 20
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:50 app
+-rw-r--r--. 1 cloudshell-user cloudshell-user  387 Sep 11 05:44 Dockerfile
+drwxr-xr-x. 2 cloudshell-user cloudshell-user 4096 Sep 11 05:44 nginx
+-rw-r--r--. 1 cloudshell-user cloudshell-user  301 Sep 11 05:45 README.md
+-rw-r--r--. 1 cloudshell-user cloudshell-user   29 Sep 11 05:45 requirements.txt
+customer-info $ cd nginx/
+nginx $ ll
+total 4
+-rw-r--r--. 1 cloudshell-user cloudshell-user 181 Sep 11 05:44 nginx.conf
+nginx $ cd ../
+
+customer-info $ git config --global user.name "cloudnative-prac901"
+customer-info $ git config --global user.email "cloud.native.practice.25@gmail.com"
+
+customer-info $ git add .
+
+customer-info $ git commit -m "Initial commit app"
+[main (root-commit) b6c3a07] Initial commit app
+ 8 files changed, 148 insertions(+)
+ create mode 100644 .dockerignore
+ create mode 100644 .github/workflows/ci.yml
+ create mode 100644 .gitignore
+ create mode 100644 Dockerfile
+ create mode 100644 README.md
+ create mode 100644 app/app.py
+ create mode 100644 nginx/nginx.conf
+ create mode 100644 requirements.txt
+
+customer-info $ git push -u origin main
+Username for 'https://github.com': <your github account ID>
+Password for 'https://cloudnative-prac901@github.com': <PAT>  // PATを入力
+Enumerating objects: 14, done.
+Counting objects: 100% (14/14), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (14/14), 2.82 KiB | 964.00 KiB/s, done.
+Total 14 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/cloudnative-prac901/customer-info.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+customer-info $ 
