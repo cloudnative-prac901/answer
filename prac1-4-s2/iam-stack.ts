@@ -138,6 +138,7 @@ export class IamStack extends cdk.Stack {
 
     // OIDCロール作成
     this.githubOidcRole = new iam.Role(this, 'GitHubOIDCRole', {
+      roleName: 'GitHubOIDCRole',
       description: 'GitHub Actions OIDC role (main branch only)',
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' },
