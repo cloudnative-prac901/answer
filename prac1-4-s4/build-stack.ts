@@ -12,7 +12,7 @@ export interface BuildStackProps extends cdk.StackProps {
   buildSpecFile?: string;           // buildspec.ymlのパス
 }
 
-// 3. クラス宣言
+// 3. スタック初期化
 export class BuildStack extends cdk.Stack {
   public readonly project: codebuild.IProject;
   public readonly projectName: string;
