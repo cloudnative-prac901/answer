@@ -56,7 +56,6 @@ const ecs = new EcsStack(app, 'EcsStack', {   //★戻り値を保持するた�
   targetGroup: alb.tgBlue,                    //★プロパティ変更
   //targetGroup: alb.targetGroup,             //★プロパティ変更のためコメントアウト
 });
-});
 
 // CodeConnection
 const conn = new ConnectionStack(app, 'ConnectionStack', { env });
