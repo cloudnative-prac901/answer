@@ -8,8 +8,6 @@ import { Token } from 'aws-cdk-lib'; // Token 判定に使用
 // 2. インタフェース定義
 export interface BuildStackProps extends cdk.StackProps {
   codeBuildRoleArn: string;         // CodeBuildRoleのARN
-  ecsTaskExecutionRoleArn: string;  // TaskExecutionRoleのARN
-  ecsTaskRoleArn: string;           // TaskRoleのArn
   ecrRepoName?: string;             // ECRリポジトリ名
   buildSpecFile?: string;           // buildspec.ymlのパス
 }
@@ -63,9 +61,6 @@ export class BuildStack extends cdk.Stack {
         ECR_REPO:       { value: repoName },  // ECRのリポジトリ名
         AWS_ACCOUNT_ID: { value: account },
         AWS_REGION:     { value: region  },
-        // taskdef.jsonのロール設定
-        EXEC_ROLE_ARN:  { value: props.ecsTaskExecutionRoleArn },
-        TASK_ROLE_ARN: { value: props.ecsTaskRoleArn ?? props.ecsTaskExecutionRoleArn },
       },
     });
 
