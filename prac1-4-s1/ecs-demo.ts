@@ -45,12 +45,12 @@ const rds = new RdsStack(app, 'RdsStack', {
 });
 
 // ECS / Fargate
-new EcsStack(app, 'EcsStack', {
-  env,
-  vpc        : net.vpc,
-  ecsSg      : net.ecsSg,
-  repo       : ecr.repository,
-  targetGroup: alb.targetGroup,
+const ecs = new EcsStack(app, 'EcsStack', {
+  env,
+  vpc        : net.vpc,
+  ecsSg      : net.ecsSg,
+  repo       : ecr.repository,
+  targetGroup: alb.targetGroup,
 });
 
 // CodeConnection  ★追加
