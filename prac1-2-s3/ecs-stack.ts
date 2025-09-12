@@ -19,11 +19,14 @@ export interface EcsStackProps extends StackProps {
 
 // 3. スタック初期化
 export class EcsStack extends Stack {
+  public readonly cluster: ecs.Cluster;
+  public readonly service: ecs.FargateService;
+
   constructor(scope: Construct, id: string, props: EcsStackProps) {
     super(scope, id, props);
 
     // 4. ECSクラスタ作成
-    const cluster = new ecs.Cluster(this, 'AppCluster', {
+    this.cluster = new ecs.Cluster(this, 'AppCluster', {
       vpc: props.vpc,
       clusterName: 'ecs-app-cluster',
       containerInsights: true,
@@ -83,8 +86,8 @@ export class EcsStack extends Stack {
     });
 
     // 8. サービス定義
-    const service = new ecs.FargateService(this, 'AppService', {
-      cluster,
+    this.service = new ecs.FargateService(this, 'AppService', {
+      cluster: this.cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
       serviceName: 'customer-info-service',
@@ -95,10 +98,10 @@ export class EcsStack extends Stack {
     });
 
     // 9. ALBターゲットグループ登録
-    service.attachToApplicationTargetGroup(props.targetGroup);
+    this.service.attachToApplicationTargetGroup(props.targetGroup);
 
     // 10. オートスケール設定（任意）
-    const scalable = service.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 4 });
+    const scalable = this.service.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 4 });
 
     // 10-1 CPU 50% でターゲット追跡
     scalable.scaleOnCpuUtilization('Cpu50', {
@@ -116,8 +119,8 @@ export class EcsStack extends Stack {
     });
 
     // 11. 出力
-    new CfnOutput(this, 'ClusterArn', { value: cluster.clusterArn });
-    new CfnOutput(this, 'ServiceName', { value: service.serviceName });
+    new CfnOutput(this, 'ClusterArn', { value: this.cluster.clusterArn });
+    new CfnOutput(this, 'ServiceName', { value: this.service.serviceName });
     new CfnOutput(this, 'TaskFamily',  { value: taskDef.family });
   }
 }
