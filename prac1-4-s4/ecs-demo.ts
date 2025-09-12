@@ -73,7 +73,5 @@ const iam = new IamStack(app, 'IamStack', {
 const build = new BuildStack(app, 'BuildStack', {
   env,
   codeBuildRoleArn: iam.codeBuildRole.roleArn,               // IamStack の出力
-  ecsTaskExecutionRoleArn: iam.ecsTaskExecutionRole.roleArn, // IamStack の出力
-  ecsTaskRoleArn: iam.appTaskRole.roleArn,                   // IamStack の出力
   ecrRepoName: 'customer-info/app',
 });
