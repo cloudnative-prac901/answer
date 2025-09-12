@@ -48,7 +48,7 @@ const rds = new RdsStack(app, 'RdsStack', {
 });
 
 // ECS / Fargate
-const ecs = new EcsStack(app, 'EcsStack', {   //★戻り値を保持するためconstに変更
+const ecs = new EcsStack(app, 'EcsStack', {
   env,
   vpc        : net.vpc,
   ecsSg      : net.ecsSg,
