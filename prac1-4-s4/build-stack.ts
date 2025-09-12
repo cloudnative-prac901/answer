@@ -32,8 +32,6 @@ export class BuildStack extends cdk.Stack {
       }
     };
     validateArnIfLiteral('codeBuildRoleArn', props.codeBuildRoleArn);
-    validateArnIfLiteral('ecsTaskExecutionRoleArn', props.ecsTaskExecutionRoleArn);
-    validateArnIfLiteral('ecsTaskRoleArn', props.ecsTaskRoleArn);
 
     // 5. ECRリポジトリの設定
     const repoName    = props.ecrRepoName ?? 'customer-info/app';
