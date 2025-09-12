@@ -36,10 +36,10 @@ const alb = new AlbStack(app, 'AlbStack', {
 const ecr = new EcrStack(app, 'EcrStack', { env });
 
 // ECS / Fargate  ★追加
-new EcsStack(app, 'EcsStack', {
-  env,
-  vpc        : net.vpc,
-  ecsSg      : net.ecsSg,
-  repo       : ecr.repository,
-  targetGroup: alb.targetGroup,
+const ecs = new EcsStack(app, 'EcsStack', {
+  env,
+  vpc        : net.vpc,
+  ecsSg      : net.ecsSg,
+  repo       : ecr.repository,
+  targetGroup: alb.targetGroup,
 });
