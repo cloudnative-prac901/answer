@@ -45,11 +45,21 @@ export class EcsStack extends Stack {
     });
 
     // 6. Cloudwatchロググループ設定
-    const logGroup = new logs.LogGroup(this, 'AppLogGroup', {
-      logGroupName: '/ecs/customer-info',
-      retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: RemovalPolicy.RETAIN,
-    });
+    const logGroupName = '/ecs/customer-info';
+
+    let logGroup: logs.ILogGroup;
+
+    try {
+      // 既存を参照（あれば CDK は新規作成しない）
+      logGroup = logs.LogGroup.fromLogGroupName(this, 'ExistingLogGroup', logGroupName);
+    } catch {
+      // 存在しなければ作成
+      logGroup = new logs.LogGroup(this, 'NewLogGroup', {
+        logGroupName,
+        retention: logs.RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.RETAIN,
+      });
+    }
 
     // 7. タスク定義
     const taskDef = new ecs.FargateTaskDefinition(this, 'TaskDef', {
@@ -95,6 +105,7 @@ export class EcsStack extends Stack {
       vpcSubnets: props.vpc.selectSubnets({ subnetGroupName: 'ecs-private' }),
       enableExecuteCommand: true,
       healthCheckGracePeriod: Duration.seconds(60),
+      deploymentController: { type: ecs.DeploymentControllerType.CODE_DEPLOY },
     });
 
     // 9. ALBターゲットグループ登録
