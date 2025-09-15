@@ -85,10 +85,11 @@ export class IamStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       description: 'Application task role for ECS tasks',
     });
-    // Secret Manager（アプリ用）
+    // Secrets Manager（アプリ用）
     if (props.appSecretArn) {
       const appSecret = secretsmanager.Secret.fromSecretCompleteArn(this, 'AppSecret', props.appSecretArn);
       appSecret.grantRead(this.appTaskRole); // secretsmanager:GetSecretValue など
+      appSecret.grantRead(this.ecsTaskExecutionRole);
     }
 
     // 8. CodePipelineロール作成
