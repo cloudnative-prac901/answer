@@ -98,16 +98,17 @@ new PipelineStack(app, 'PipelineStack', {
   env,
   pipelineName       : 'CustomerInfoPipeline',
   codeBuildRoleArn   : iam.codeBuildRole.roleArn,
+  codeDeployRoleArn  : iam.codeDeployRole.roleArn,
   codePipelineRoleArn: iam.codePipelineRole.roleArn,
   ecrRepoName        : 'customer-info/app',
   gitHubConnectionArn: conn.connectionArn,                   // CodeConnections承認後に有効
   gitHubOwner        : '<xxx>',                              // GitHubユーザ名/リポジトリ名に修正
-  gitHubRepo         : 'customer-info',                      // GitHubユーザ名/リポジトリ名に修正  
+  gitHubRepo         : 'customer-info',                      // GitHubユーザ名/リポジトリ名に修正
   gitHubBranch       : 'main',
   ecsAppName         : 'CustomerInfoEcsApp',
   ecsDeploymentGroupName: 'CustomerInfoDG',
   ecsTaskExecutionRoleArn: iam.ecsTaskExecutionRole.roleArn,
-  ecsTaskRoleArn         : iam.ecsTaskRole.roleArn,
-  artifactBucketName: 'codepipeline-artifacts-customer-info',
-  useExistingArtifactsBucket: true,                          // IamStackで既に作成済みなので参照モード
+  ecsTaskRoleArn         : iam.appTaskRole.roleArn,
+  dbSecretArn            : rds.appSecret.secretArn,
+  dbHost                 : rds.dbHost,
 });
