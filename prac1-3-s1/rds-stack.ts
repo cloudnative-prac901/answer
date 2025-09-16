@@ -16,6 +16,7 @@ export class RdsStack extends cdk.Stack {
   public readonly dbInstance: rds.DatabaseInstance;
   public readonly dbSecret: secretsmanager.ISecret;
   public readonly appSecret: secretsmanager.ISecret;
+  public readonly dbHost: string;
 
   constructor(scope: Construct, id: string, props: RdsStackProps) {
     super(scope, id, props);
@@ -58,6 +59,8 @@ export class RdsStack extends cdk.Stack {
       databaseName: 'customer_info',              // ★初期DB名
     });
 
+    this.dbHost = this.dbInstance.dbInstanceEndpointAddress;
+    
     // 7. 出力
     new cdk.CfnOutput(this, 'CustomerInfoDbEndpoint', {
       value: this.dbInstance.dbInstanceEndpointAddress,
