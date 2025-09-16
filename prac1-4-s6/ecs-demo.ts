@@ -102,8 +102,8 @@ new PipelineStack(app, 'PipelineStack', {
   codePipelineRoleArn: iam.codePipelineRole.roleArn,
   ecrRepoName        : 'customer-info/app',
   gitHubConnectionArn: conn.connectionArn,                   // CodeConnections承認後に有効
-  gitHubOwner        : '<xxx>',                              // GitHubユーザ名/リポジトリ名に修正
-  gitHubRepo         : 'customer-info',                      // GitHubユーザ名/リポジトリ名に修正
+  gitHubOwner        : '<xxx>',                              // GitHubユーザ名に修正
+  gitHubRepo         : 'customer-info',
   gitHubBranch       : 'main',
   ecsAppName         : 'CustomerInfoEcsApp',
   ecsDeploymentGroupName: 'CustomerInfoDG',
