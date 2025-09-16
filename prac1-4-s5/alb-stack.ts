@@ -86,7 +86,6 @@ export class AlbStack extends Stack {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgBlue],
-      open: true,
     });
 
     // ★テストリスナー (9001) : 初期はGreenをテストに適用
@@ -94,7 +93,6 @@ export class AlbStack extends Stack {
       port: 9001,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgGreen],
-      open: true,
     });
 
     // 8. WAFルール作成（BadBotブロック）
