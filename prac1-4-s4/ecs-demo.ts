@@ -69,7 +69,7 @@ const iam = new IamStack(app, 'IamStack', {
   appSecretArn: rds.appSecret.secretArn,  // アプリケーション用の認証情報
 });
 
-// Build Stack　　★追加
+// CodeBuild　　★追加
 const build = new BuildStack(app, 'BuildStack', {
   env,
   codeBuildRoleArn: iam.codeBuildRole.roleArn,               // IamStack の出力
