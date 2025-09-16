@@ -73,7 +73,7 @@ export class DeployStack extends cdk.Stack {
       // 監視アラーム（必要なら enabled: true にして Alarm を渡す）
       alarmConfiguration: { enabled: false },
 
-      // 7. ECS サービスと LB（Listener/TG）を接続
+      // 7. ECS サービスと ALB（Listener/TG）を接続
       ecsServices: [{ clusterName: props.clusterName, serviceName: props.serviceName }],
       loadBalancerInfo: {
         targetGroupPairInfoList: [{
