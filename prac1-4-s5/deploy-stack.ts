@@ -6,22 +6,15 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 
 // 2. インタフェース定義
 export interface DeployStackProps extends cdk.StackProps {
-  // ECS の実体
-  clusterName: string;
-  serviceName: string;
-
-  // ALB の実体（Blue/Green）
-  prodListenerArn: string;
-  testListenerArn: string;
-  tgBlueName: string;
-  tgGreenName: string;
-
-  // CodeDeploy 用サービスロール
-  codeDeployRoleArn: string;   // ← 命名を統一（以前の DeployRoleArn を修正）
-
-  // 命名
-  applicationName: string;     // 例: 'CustomerInfoEcsApp'
-  deploymentGroupName: string; // 例: 'CustomerInfoDG'
+  clusterName: string;  // ECSクラスター名
+  serviceName: string;  // ECSサービス名
+  prodListenerArn: string;  // 本番リスナー
+  testListenerArn: string;  // テストリスナー
+  tgBlueName: string;       // ターゲットグループ(Blue)
+  tgGreenName: string;      // ターゲットグループ(Green)
+  codeDeployRoleArn: string;  // CodeDeploy用IAMロール
+  applicationName: string;     // CodeDeploy アプリケーション名
+  deploymentGroupName: string; // CodeDeploy でプロメントグループ名
 }
 
 // 3. スタック初期化
