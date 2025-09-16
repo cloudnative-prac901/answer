@@ -71,14 +71,14 @@ const iam = new IamStack(app, 'IamStack', {
   appSecretArn: rds.appSecret.secretArn,  // アプリケーション用の認証情報
 });
 
-// Build Stack
+// CodeBuild
 const build = new BuildStack(app, 'BuildStack', {
   env,
   codeBuildRoleArn: iam.codeBuildRole.roleArn,
   ecrRepoName: 'customer-info/app',
 });
 
-// Deploy Stack　　★追加
+// CodeDeploy　　★追加
 const deploy = new DeployStack(app, 'DeployStack', {
   env,
   clusterName: ecs.cluster.clusterName,
