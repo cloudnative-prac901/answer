@@ -64,7 +64,8 @@ export class DeployStack extends cdk.Stack {
           terminationWaitTimeInMinutes: 5,
         },
         deploymentReadyOption: {
-          actionOnTimeout: 'CONTINUE_DEPLOYMENT', // 承認ゲート入れるなら STOP_DEPLOYMENT
+          actionOnTimeout: 'STOP_DEPLOYMENT', // 承認ゲート入れない場合は CONTINUE_DEPLOYMENT
+          waitTimeInMinutes: 300,                 // 承認を待つ時間
         },
         // greenFleetProvisioningOption: { action: 'DISCOVER_EXISTING' },
       },
