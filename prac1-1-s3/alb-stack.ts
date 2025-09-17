@@ -63,7 +63,7 @@ export class AlbStack extends Stack {
       action: { block: {} },
       statement: {
         byteMatchStatement: {
-          fieldToMatch: { singleHeader: { name: 'user-agent' } }, //
+          fieldToMatch: { singleHeader: { name: 'user-agent' } },
           positionalConstraint: 'CONTAINS',
           searchString: 'BadBot',
           textTransformations: [{ priority: 0, type: 'NONE' }],
