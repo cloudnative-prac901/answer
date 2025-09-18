@@ -70,7 +70,8 @@ export class NetStack extends Stack {
     // 6. セキュリティグループ間の通信ルール
     // ALB: InternetからHTTP/HTTPSを許可
     this.albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP from Internet');
-    this.albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(9001), 'Allow test listener (9001) from Internet');  //★追加（B/Gデプロイ - テストリスナ用ポート）
+    this.albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS from Internet');  // ★追加　HTTPS移行用ポート
+    this.albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(9001), 'Allow test listener (9001) from Internet');  // B/Gデプロイ - テストリスナ用ポート
     this.albSg.addEgressRule(this.ecsSg, ec2.Port.tcp(80), 'ALB-to-ECS');
 
     // ECS: ALBからHTTPアクセスを許可
