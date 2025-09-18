@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import { App } from 'aws-cdk-lib';
 import { NetStack } from '../lib/net-stack';
 import { VpceStack } from '../lib/vpce-stack';
+import { AcmStack } from '../lib/acm-stack';  //★追加
 import { AlbStack } from '../lib/alb-stack';
 import { EcrStack } from '../lib/ecr-stack';
 import { RdsStack } from '../lib/rds-stack';
@@ -11,7 +12,7 @@ import { ConnectionStack } from '../lib/connection-stack';
 import { IamStack } from '../lib/iam-stack';
 import { BuildStack } from '../lib/build-stack';
 import { DeployStack } from '../lib/deploy-stack';
-import { PipelineStack } from '../lib/pipeline-stack';  //★追加
+import { PipelineStack } from '../lib/pipeline-stack';
 
 const app = new App();
 const env = {
@@ -31,11 +32,19 @@ new VpceStack(app, 'VpceStack', {
   jumpSg: net.jumpSg
 });
 
+// ACM  ★追加
+const acm = new AcmStack(app, 'AcmStack', {
+  env,
+  domainName: '<公開したいサブドメイン>',             // 公開したいサブドメイン (例：app.example.com)
+  hostedZoneName: '<Route53に登録済のホストゾーン>',  // Route53に登録済ホストゾーン (例：example.com)
+});
+
 // ALB / WAF
 const alb = new AlbStack(app, 'AlbStack', {
   env,
   vpc: net.vpc,
   albSg: net.albSg,
+  certificateArn: acm.certificateArn,  // ★追加（ALBのリスナーにTLS証明書を追加するため）
 });
 
 // ECR
@@ -93,7 +102,7 @@ const deploy = new DeployStack(app, 'DeployStack', {
   deploymentGroupName: 'CustomerInfoDG',
 });
 
-// CodePipeline  ★追加
+// CodePipeline
 new PipelineStack(app, 'PipelineStack', {
   env,
   pipelineName       : 'CustomerInfoPipeline',
