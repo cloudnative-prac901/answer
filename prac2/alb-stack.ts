@@ -4,8 +4,8 @@ import { Construct } from 'constructs';
 import * as ec2   from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
-import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as targets from 'aws-cdk-lib/aws-route53-targets';
+import * as route53 from 'aws-cdk-lib/aws-route53';          // ★追加
+import * as targets from 'aws-cdk-lib/aws-route53-targets';  // ★追加
 
 // 2. インタフェース定義
 export interface AlbStackProps extends StackProps {
@@ -13,8 +13,8 @@ export interface AlbStackProps extends StackProps {
   albSg          : ec2.ISecurityGroup;
   albSubnets?    : ec2.SubnetSelection;   // 指定が無ければ 'alb-public' グループを自動選択
   certificateArn : string;                // TLS証明書ARN　★追加
-  hostedZoneName : string;                // ホストゾーン名　例: tingatinga-jp.org　★追加
-  domainName     : string;                // ドメイン名　例: customer-info.tingatinga-jp.org　★追加
+  hostedZoneName : string;                // ホストゾーン名　例: example.com　★追加
+  domainName     : string;                // ドメイン名　例: app.example.com　★追加
 }
 
 // 3. 公開プロパティ
