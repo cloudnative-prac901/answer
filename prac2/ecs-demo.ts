@@ -44,7 +44,9 @@ const alb = new AlbStack(app, 'AlbStack', {
   env,
   vpc: net.vpc,
   albSg: net.albSg,
-  certificateArn: acm.certificateArn,  // ★追加（ALBのリスナーにTLS証明書を追加するため）
+  certificateArn: acm.certificateArn,               // ★追加　ALBのリスナーにTLS証明書を追加するため
+  domainName: '<公開したいサブドメイン>',             // ★追加　公開したいサブドメイン (例：app.example.com)
+  hostedZoneName: '<Route53に登録済のホストゾーン>',  // ★追加　Route53に登録済ホストゾーン (例：example.com)
 });
 
 // ECR
