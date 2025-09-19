@@ -97,7 +97,7 @@ export class AlbStack extends Stack {
       defaultTargetGroups: [this.tgGreen],
     });
 
-    // 8. Route53 レコード作成　★追加
+    // 9. Route53 レコード作成　★追加
     const zone = route53.HostedZone.fromLookup(this, 'AlbZone', {
       domainName: props.hostedZoneName,
       privateZone: false,
@@ -118,7 +118,7 @@ export class AlbStack extends Stack {
       ttl: Duration.minutes(1),
     });
 
-    // 9. WAFルール作成（BadBotブロック）
+    // 10. WAFルール作成（BadBotブロック）
     const badBotRule: wafv2.CfnWebACL.RuleProperty = {
       name: 'BlockBadBotUA',
       priority: 0,
@@ -138,7 +138,7 @@ export class AlbStack extends Stack {
       },
     };
 
-    // 10. WAFルール作成（AWSマネージドルール）
+    // 11. WAFルール作成（AWSマネージドルール）
     const awsManagedCommon: wafv2.CfnWebACL.RuleProperty = {
       name: 'AWSManagedCommonRuleSet',
       priority: 1,
@@ -156,7 +156,7 @@ export class AlbStack extends Stack {
       },
     };
 
-    // 11. WebACL作成
+    // 12. WebACL作成
     const webAcl = new wafv2.CfnWebACL(this, 'AlbWebAcl', {
       scope: 'REGIONAL',
       defaultAction: { allow: {} },
@@ -168,13 +168,13 @@ export class AlbStack extends Stack {
       rules: [badBotRule, awsManagedCommon],
     });
 
-    // 12. ALB と WebACL の関連付け
+    // 13. ALB と WebACL の関連付け
     new wafv2.CfnWebACLAssociation(this, 'WebAclAssociation', {
       resourceArn: alb.loadBalancerArn,
       webAclArn  : webAcl.attrArn,
     });
 
-    // 13. 出力
+    // 14. 出力
     this.albDnsName = alb.loadBalancerDnsName;
     new CfnOutput(this, 'AlbDnsName',   { value: alb.loadBalancerDnsName  });
     new CfnOutput(this, 'AlbWebAclArn', { value: webAcl.attrArn           });
