@@ -10,19 +10,18 @@ export interface AlbStackProps extends StackProps {
   vpc        : ec2.IVpc;
   albSg      : ec2.ISecurityGroup;
   albSubnets?: ec2.SubnetSelection;   // 指定が無ければ 'alb-public' グループを自動選択
+  certificateArn: string;             // ★追加
 }
 
 // 3. 公開プロパティ
 export class AlbStack extends Stack {
   public readonly albDnsName: string;
-  //public readonly targetGroup: elbv2.ApplicationTargetGroup; // ★tgを2つに変更するためコメントアウト
 
-  // ★B/Gデプロイ用に、本番およびテスト用のリスナー、ターゲットグループを2つずつ定義
-  public readonly listenerProd: elbv2.ApplicationListener; // ★本番(80)
-  public readonly listenerTest: elbv2.ApplicationListener; // ★テスト(9001)
+  public readonly listenerProd: elbv2.ApplicationListener;  // 本番：HTTPS 443
+  public readonly listenerTest: elbv2.ApplicationListener;  // テスト：HTTPS:9001
 
-  public readonly tgBlue : elbv2.ApplicationTargetGroup;   // ★初期：本番
-  public readonly tgGreen: elbv2.ApplicationTargetGroup;   // ★初期：テスト
+  public readonly tgBlue : elbv2.ApplicationTargetGroup;   // 初期：本番
+  public readonly tgGreen: elbv2.ApplicationTargetGroup;   // 初期：テスト
 
   // 4. スタック初期化
   constructor(scope: Construct, id: string, props: AlbStackProps) {
@@ -46,17 +45,7 @@ export class AlbStack extends Stack {
     });
 
     // 6. 空ターゲットグループ（後で Fargate を登録）
-    // ★初期ターゲットグループ(tg)は不要となるため、コメントアウト
-    //const tg = new elbv2.ApplicationTargetGroup(this, 'AlbTg', {
-    //  vpc: props.vpc,
-    //  port: 80,
-    //  protocol: elbv2.ApplicationProtocol.HTTP,
-    //  targetType: elbv2.TargetType.IP,
-    //  healthCheck: { path: '/', interval: Duration.seconds(30) },
-    //});
-    //this.targetGroup = tg;
-
-    // ★Blue/Green 用ターゲットグループ（HTTP:80）
+    // Blue/Green 用ターゲットグループ（HTTP:80）
     this.tgBlue = new elbv2.ApplicationTargetGroup(this, 'TgBlue', {
       vpc: props.vpc,
       port: 80,
@@ -74,24 +63,32 @@ export class AlbStack extends Stack {
     });
 
     // 7. HTTPリスナーの作成
-    //const listener = alb.addListener('HttpListener', {
-    //  port: 80,
-    //  protocol: elbv2.ApplicationProtocol.HTTP,
-    //  defaultTargetGroups: [tg],
-    //});
-
-    // ★Blue/Green 用リスナー
-    // ★本番リスナー (80) : 初期はBlueを本番に適用
-    this.listenerProd = alb.addListener('HttpListenerProd', {
+    // HTTP用リスナー（HTTP(80)はTGへフォワードせず、HTTPS(443)へ301リダイレクト）  ★追加
+    alb.addListener('HttpListenerRedirect', {
       port: 80,
-      protocol: elbv2.ApplicationProtocol.HTTP,
+      defaultAction: elbv2.ListenerAction.redirect({
+        protocol: 'HTTPS',
+        port: '443',
+        permanent: true, // 301
+      }),
+    });
+
+    // Blue/Green 用リスナー
+    // 本番リスナー (443) : 初期はBlueを本番に適用（★80→443に変更）
+    this.listenerProd = alb.addListener('HttpsListenerProd', {  // ★修正
+      port: 443,                                                // ★修正
+      certificates: [{ certificateArn: props.certificateArn }], // ★追加
+      sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,               // ★追加
+      // protocol: elbv2.ApplicationProtocol.HTTPS,             // ★不要な定義のためコメントアウト
       defaultTargetGroups: [this.tgBlue],
     });
 
-    // ★テストリスナー (9001) : 初期はGreenをテストに適用
-    this.listenerTest = alb.addListener('HttpListenerTest', {
+    // テストリスナー (9001) : 初期はGreenをテストに適用（★ポートは変更なし）
+    this.listenerTest = alb.addListener('HttpsListenerTest', {  // ★修正
       port: 9001,
-      protocol: elbv2.ApplicationProtocol.HTTP,
+      certificates: [{ certificateArn: props.certificateArn }], // ★追加
+      sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,               // ★追加
+      // protocol: elbv2.ApplicationProtocol.HTTP,              // ★不要な定義のためコメントアウト
       defaultTargetGroups: [this.tgGreen],
     });
 
@@ -143,7 +140,6 @@ export class AlbStack extends Stack {
         metricName: 'AlbWebAcl',
       },
       rules: [badBotRule, awsManagedCommon],
-
     });
 
     // 11. ALB と WebACL の関連付け
@@ -156,11 +152,12 @@ export class AlbStack extends Stack {
     this.albDnsName = alb.loadBalancerDnsName;
     new CfnOutput(this, 'AlbDnsName',   { value: alb.loadBalancerDnsName  });
     new CfnOutput(this, 'AlbWebAclArn', { value: webAcl.attrArn           });
-    //new CfnOutput(this, 'AlbTgArn',     { value: tg.targetGroupArn        });　★コメントアウト
-    // ★本番/テスト用リスナーの出力を追加
+
+    // 本番/テスト用リスナーの出力を追加
     new CfnOutput(this, 'ProdListenerArn',   { value: this.listenerProd.listenerArn });
     new CfnOutput(this, 'TestListenerArn',   { value: this.listenerTest.listenerArn });
-    // ★B/Gデプロイ用ターゲットグループの名前およびARNを追加
+
+    // B/Gデプロイ用ターゲットグループの名前およびARNを追加
     new CfnOutput(this, 'TgBlueName',        { value: this.tgBlue.targetGroupName });
     new CfnOutput(this, 'TgGreenName',       { value: this.tgGreen.targetGroupName });
     new CfnOutput(this, 'TgBlueArn',         { value: this.tgBlue.targetGroupArn });
