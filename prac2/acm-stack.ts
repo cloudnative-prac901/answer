@@ -17,7 +17,7 @@ export class AcmStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AcmStackProps) {
     super(scope, id, props);
 
-    // 4. HostedZoneをlookup
+    // 4. HostedZone情報取得
     const zone = route53.HostedZone.fromLookup(this, 'HostedZone', {
       domainName: props.hostedZoneName,
     });
