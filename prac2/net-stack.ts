@@ -19,7 +19,7 @@ export class NetStack extends Stack {
 
     // 4. VPC＋サブネット作成
     this.vpc = new ec2.Vpc(this, 'AppVpc', {
-      cidr: '10.0.0.0/16',
+      ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
       maxAzs: 2,
       subnetConfiguration: [
         { name: 'alb-public',     subnetType: ec2.SubnetType.PUBLIC,           cidrMask: 24 },
