@@ -77,18 +77,18 @@ export class AlbStack extends Stack {
     // 本番リスナー (443) : 初期はBlueを本番に適用（★80→443に変更）
     this.listenerProd = alb.addListener('HttpsListenerProd', {  // ★修正
       port: 443,                                                // ★修正
+      protocol: elbv2.ApplicationProtocol.HTTPS,                // ★修正
       certificates: [{ certificateArn: props.certificateArn }], // ★追加
       sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,               // ★追加
-      // protocol: elbv2.ApplicationProtocol.HTTPS,             // ★不要な定義のためコメントアウト
       defaultTargetGroups: [this.tgBlue],
     });
 
     // テストリスナー (9001) : 初期はGreenをテストに適用（★ポートは変更なし）
     this.listenerTest = alb.addListener('HttpsListenerTest', {  // ★修正
       port: 9001,
+      protocol: elbv2.ApplicationProtocol.HTTP,                 // ★修正
       certificates: [{ certificateArn: props.certificateArn }], // ★追加
       sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,               // ★追加
-      // protocol: elbv2.ApplicationProtocol.HTTP,              // ★不要な定義のためコメントアウト
       defaultTargetGroups: [this.tgGreen],
     });
 
