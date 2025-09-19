@@ -29,5 +29,11 @@ export class AcmStack extends cdk.Stack {
     });
 
     this.certificateArn = cert.certificateArn;
+
+    // 6. 出力
+    new cdk.CfnOutput(this, 'CertificateArn', {
+      value: cert.certificateArn,
+      exportName: `${cdk.Stack.of(this).stackName}-CertificateArn`,
+    });
   }
 }
