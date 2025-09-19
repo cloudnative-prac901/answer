@@ -4,13 +4,17 @@ import { Construct } from 'constructs';
 import * as ec2   from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 
 // 2. インタフェース定義
 export interface AlbStackProps extends StackProps {
-  vpc        : ec2.IVpc;
-  albSg      : ec2.ISecurityGroup;
-  albSubnets?: ec2.SubnetSelection;   // 指定が無ければ 'alb-public' グループを自動選択
-  certificateArn: string;             // ★追加
+  vpc            : ec2.IVpc;
+  albSg          : ec2.ISecurityGroup;
+  albSubnets?    : ec2.SubnetSelection;   // 指定が無ければ 'alb-public' グループを自動選択
+  certificateArn : string;                // TLS証明書ARN　★追加
+  hostedZoneName : string;                // ホストゾーン名　例: tingatinga-jp.org　★追加
+  domainName     : string;                // ドメイン名　例: customer-info.tingatinga-jp.org　★追加
 }
 
 // 3. 公開プロパティ
@@ -18,7 +22,7 @@ export class AlbStack extends Stack {
   public readonly albDnsName: string;
 
   public readonly listenerProd: elbv2.ApplicationListener;  // 本番：HTTPS 443
-  public readonly listenerTest: elbv2.ApplicationListener;  // テスト：HTTPS:9001
+  public readonly listenerTest: elbv2.ApplicationListener;  // テスト：HTTPS 9001
 
   public readonly tgBlue : elbv2.ApplicationTargetGroup;   // 初期：本番
   public readonly tgGreen: elbv2.ApplicationTargetGroup;   // 初期：テスト
@@ -44,7 +48,8 @@ export class AlbStack extends Stack {
       vpcSubnets: subnetSel,
     });
 
-    // 6. 空ターゲットグループ（後で Fargate を登録）
+    // 6. ターゲットグループ
+    // 現時点ではターゲットは空、後で Fargate作成時に登録
     // Blue/Green 用ターゲットグループ（HTTP:80）
     this.tgBlue = new elbv2.ApplicationTargetGroup(this, 'TgBlue', {
       vpc: props.vpc,
@@ -62,7 +67,7 @@ export class AlbStack extends Stack {
       healthCheck: { path: '/', interval: Duration.seconds(30) },
     });
 
-    // 7. HTTPリスナーの作成
+    // 7. HTTPリスナー作成
     // HTTP用リスナー（HTTP(80)はTGへフォワードせず、HTTPS(443)へ301リダイレクト）  ★追加
     alb.addListener('HttpListenerRedirect', {
       port: 80,
@@ -73,7 +78,7 @@ export class AlbStack extends Stack {
       }),
     });
 
-    // Blue/Green 用リスナー
+    // 8. HTTPSリスナー作成（Blue/Green 用）
     // 本番リスナー (443) : 初期はBlueを本番に適用（★80→443に変更）
     this.listenerProd = alb.addListener('HttpsListenerProd', {  // ★修正
       port: 443,                                                // ★修正
@@ -86,20 +91,41 @@ export class AlbStack extends Stack {
     // テストリスナー (9001) : 初期はGreenをテストに適用（★ポートは変更なし）
     this.listenerTest = alb.addListener('HttpsListenerTest', {  // ★修正
       port: 9001,
-      protocol: elbv2.ApplicationProtocol.HTTP,                 // ★修正
+      protocol: elbv2.ApplicationProtocol.HTTPS,                // ★修正
       certificates: [{ certificateArn: props.certificateArn }], // ★追加
       sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,               // ★追加
       defaultTargetGroups: [this.tgGreen],
     });
 
-    // 8. WAFルール作成（BadBotブロック）
+    // 8. Route53 レコード作成　★追加
+    const zone = route53.HostedZone.fromLookup(this, 'AlbZone', {
+      domainName: props.hostedZoneName,
+      privateZone: false,
+    });
+
+    // domainName = "app.example.com"
+    // hostedZoneName = "example.com"
+    // → recordName = "app"
+    const recordName = props.domainName.endsWith(`.${props.hostedZoneName}`)
+      ? props.domainName.slice(0, props.domainName.length - props.hostedZoneName.length - 1)
+      : props.domainName;
+
+    // AレコードをALBへAlias
+    new route53.ARecord(this, 'AlbARecord', {
+      zone,
+      recordName,
+      target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(alb)),
+      ttl: Duration.minutes(1),
+    });
+
+    // 9. WAFルール作成（BadBotブロック）
     const badBotRule: wafv2.CfnWebACL.RuleProperty = {
       name: 'BlockBadBotUA',
       priority: 0,
       action: { block: {} },
       statement: {
         byteMatchStatement: {
-          fieldToMatch: { singleHeader: { name: 'user-agent' } }, //
+          fieldToMatch: { singleHeader: { name: 'user-agent' } },
           positionalConstraint: 'CONTAINS',
           searchString: 'BadBot',
           textTransformations: [{ priority: 0, type: 'NONE' }],
@@ -112,7 +138,7 @@ export class AlbStack extends Stack {
       },
     };
 
-    // 9. WAFルール作成（AWSマネージドルール）
+    // 10. WAFルール作成（AWSマネージドルール）
     const awsManagedCommon: wafv2.CfnWebACL.RuleProperty = {
       name: 'AWSManagedCommonRuleSet',
       priority: 1,
@@ -130,7 +156,7 @@ export class AlbStack extends Stack {
       },
     };
 
-    // 10. WebACL作成
+    // 11. WebACL作成
     const webAcl = new wafv2.CfnWebACL(this, 'AlbWebAcl', {
       scope: 'REGIONAL',
       defaultAction: { allow: {} },
@@ -142,13 +168,13 @@ export class AlbStack extends Stack {
       rules: [badBotRule, awsManagedCommon],
     });
 
-    // 11. ALB と WebACL の関連付け
+    // 12. ALB と WebACL の関連付け
     new wafv2.CfnWebACLAssociation(this, 'WebAclAssociation', {
       resourceArn: alb.loadBalancerArn,
       webAclArn  : webAcl.attrArn,
     });
 
-    // 12. 出力
+    // 13. 出力
     this.albDnsName = alb.loadBalancerDnsName;
     new CfnOutput(this, 'AlbDnsName',   { value: alb.loadBalancerDnsName  });
     new CfnOutput(this, 'AlbWebAclArn', { value: webAcl.attrArn           });
