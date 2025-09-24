@@ -42,10 +42,17 @@ export class PipelineStack extends cdk.Stack {
     const codePipelineRole = iam.Role.fromRoleArn(
       this, 'ImportedCodePipelineRole', props.codePipelineRoleArn, { mutable: false },
     );
+
+    // 新規 CodeBuild プロジェクト test 用 （pytest用・Docker不要） ★追加
+    const testBuildProject = codebuild.Project.fromProjectName(
+      this, 'TestBuildProject', 'customer-info-tests',
+    );
+
     // 既存 CodeBuild プロジェクト（Privileged: ON 前提）
     const buildProject = codebuild.Project.fromProjectName(
       this, 'BuildProject', 'customer-info-app',
     );
+
     // 既存 CodeDeploy アプリケーション / デプロイメントグループ
     const app = codedeploy.EcsApplication.fromEcsApplicationName(
       this, 'EcsApp', props.ecsAppName,
@@ -53,6 +60,7 @@ export class PipelineStack extends cdk.Stack {
     const dg = codedeploy.EcsDeploymentGroup.fromEcsDeploymentGroupAttributes(
       this, 'EcsDG', { application: app, deploymentGroupName: props.ecsDeploymentGroupName },
     );
+
     // Artifacts（CDKにバケット自動作成させる：名前は自動サフィックスで変動OK）
     const sourceOutput = new codepipeline.Artifact('SourceArtifact');
     const buildOutput  = new codepipeline.Artifact('BuildArtifact');
@@ -79,7 +87,20 @@ export class PipelineStack extends cdk.Stack {
           ],
         },
 
-        // 6. Build: Dockerビルド、プッシュ
+        // 6. Test: pytest実行して品質担保　★追加
+        {
+          stageName: 'Test',
+          actions: [
+            new cpactions.CodeBuildAction({
+              actionName: 'Pytest',
+              project: testBuildProject,
+              input: sourceOutput,         // リポの tests/ と buildspec.test.yml を参照
+              // 成功で次へ、失敗でパイプライン停止（デフォルト挙動）
+            }),
+          ],
+        },
+
+        // 7. Build: Dockerビルド、プッシュ
         {
           stageName: 'Build',
           actions: [
@@ -101,7 +122,7 @@ export class PipelineStack extends cdk.Stack {
           ],
         },
 
-        //7. Deploy: artifact置換、デプロイメント起動
+        //8. Deploy: artifact置換、デプロイメント起動
         {
           stageName: 'Deploy',
           actions: [
@@ -124,7 +145,7 @@ export class PipelineStack extends cdk.Stack {
       ],
     });
 
-    // 8. IAMロール権限追加
+    // 9. IAMロール権限追加
     // CodeDeployのIAMロールへの権限追加
     const cdRole = iam.Role.fromRoleArn(
       this, 'ImportedCodeDeployRole', props.codeDeployRoleArn, { mutable: false }
@@ -136,7 +157,7 @@ export class PipelineStack extends cdk.Stack {
       pipeline.artifactBucket.encryptionKey.grantDecrypt(cdRole);
     }
 
-    // 9. 出力
+    // 10. 出力
     new cdk.CfnOutput(this, 'PipelineName', { value: pipeline.pipelineName });
     new cdk.CfnOutput(this, 'ArtifactBucketName', { value: pipeline.artifactBucket.bucketName });
   }
