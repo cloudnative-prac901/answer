@@ -55,7 +55,9 @@ export class BuildStack extends cdk.Stack {
       },
 
       // リポジトリ直下の buildspec.yml を利用
-      buildSpec: codebuild.BuildSpec.fromSourceFilename(props.buildSpecFile ?? 'buildspec.yml'),
+      buildSpec: codebuild.BuildSpec.fromSourceFilename(
+        props.buildSpecFile ?? 'buildspec.yml'
+      ),
 
       // buildspec から参照する環境変数
       environmentVariables: {
