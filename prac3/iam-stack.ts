@@ -62,6 +62,15 @@ export class IamStack extends cdk.Stack {
       resources: ['*'],
     }));
 
+    // CodeBuild Reports（pytestのJUnit等をレポートとして登録）　★追加
+    this.codeBuildRole.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'codebuild:*Report*',   // Create/Update/Delete/List/Describe(Reports/ReportGroups) まとめて許可
+        'codebuild:BatchPut*',  // BatchPutTestCases / BatchPutCodeCoverages など
+      ],
+      resources: ['*'],         // （演習では広めに許可。必要に応じて report-group ARN に絞る）
+    }));
+
     // 5. CodeDeployロール作成
     this.codeDeployRole = new iam.Role(this, 'CodeDeployRole', {
       assumedBy: new iam.ServicePrincipal('codedeploy.amazonaws.com'),
