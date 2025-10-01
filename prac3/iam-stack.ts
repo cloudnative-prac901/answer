@@ -94,14 +94,15 @@ export class IamStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       description: 'Application task role for ECS tasks',
     });
-    // Secrets Manager（アプリ用）
+    
+    // 8. Secrets Manager（アプリ用シークレットリソース）
     if (props.appSecretArn) {
       const appSecret = secretsmanager.Secret.fromSecretCompleteArn(this, 'AppSecret', props.appSecretArn);
       appSecret.grantRead(this.appTaskRole); // secretsmanager:GetSecretValue など
       appSecret.grantRead(this.ecsTaskExecutionRole);
     }
 
-    // 8. CodePipelineロール作成
+    // 9. CodePipelineロール作成
     this.codePipelineRole = new iam.Role(this, 'CodePipelineRole', {
       assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
       description: 'Allows CodePipeline to orchestrate Source/Build/Deploy',
@@ -137,7 +138,7 @@ export class IamStack extends cdk.Stack {
       }));
     }
 
-    // 9. GitHub OIDCプロバイダー/ロール作成
+    // 10. GitHub OIDCプロバイダー/ロール作成
     // OIDCプロバイダー作成
     const provider = new iam.OpenIdConnectProvider(this, 'GitHubOIDC', {
       url: 'https://token.actions.githubusercontent.com',
@@ -162,7 +163,7 @@ export class IamStack extends cdk.Stack {
       resources: [pipelineArn],
     }));
 
-    // 10. 出力
+    // 11. 出力
     new cdk.CfnOutput(this, 'CodeBuildRoleArn',        { value: this.codeBuildRole.roleArn });
     new cdk.CfnOutput(this, 'CodeDeployRoleArn',       { value: this.codeDeployRole.roleArn });
     new cdk.CfnOutput(this, 'CodePipelineRoleArn',     { value: this.codePipelineRole.roleArn });
