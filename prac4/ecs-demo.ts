@@ -5,7 +5,7 @@ import { NetStack } from '../lib/net-stack';
 import { VpceStack } from '../lib/vpce-stack';
 import { AcmStack } from '../lib/acm-stack';
 import { AlbStack } from '../lib/alb-stack';
-import { AlbStack } from '../lib/alb2-stack';  //★追加
+import { Alb2Stack } from '../lib/alb2-stack';  //★追加
 import { EcrStack } from '../lib/ecr-stack';
 import { RdsStack } from '../lib/rds-stack';
 import { EcsStack } from '../lib/ecs-stack';
@@ -51,7 +51,7 @@ const alb = new AlbStack(app, 'AlbStack', {
 });
 
 // ALB / WAF for FortuneTellingApp　★追加
-const alb = new Alb2Stack(app, 'AlbStack', {
+const alb2 = new Alb2Stack(app, 'Alb2Stack', {
   env,
   vpc: net.vpc,
   albSg: net.albSg,
