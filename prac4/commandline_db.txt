@@ -1,0 +1,138 @@
+# パッケージインストール
+~ $ sudo dnf makecache
+Amazon Linux 2023 repository                                                                                                                                                                                            68 MB/s |  47 MB     00:00    
+Last metadata expiration check: 0:00:10 ago on Tue 07 Oct 2025 08:19:43 AM UTC.
+Metadata cache created.
+
+~ $ sudo dnf install -y mariadb105
+Last metadata expiration check: 0:00:15 ago on Tue 07 Oct 2025 08:19:43 AM UTC.
+Package mariadb105-3:10.5.29-1.amzn2023.0.1.x86_64 is already installed.
+Dependencies resolved.
+Nothing to do.
+Complete!
+
+# シークレット確認
+  ~ $ aws secretsmanager get-secret-value \
+>   --secret-id admin-db-credentials \
+>   --query SecretString \
+>   --output text | jq .
+{
+  "password": "xxx",
+  "dbname": "customer_info",
+  "engine": "mysql",
+  "port": 3306,
+  "dbInstanceIdentifier": "application-db",
+  "host": "application-db.crmoq6c2a5cy.ap-northeast-2.rds.amazonaws.com",
+  "username": "admin"
+}
+
+# MySQLログイン
+~ $ mysql -h application-db.crmoq6c2a5cy.ap-northeast-2.rds.amazonaws.com -u admin -p
+Enter password:
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 56
+Server version: 8.0.42 Source distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+# データベース表示
+MySQL [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customer_info      |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+6 rows in set (0.002 sec)
+
+# データベース作成
+MySQL [(none)]> CREATE DATABASE IF NOT EXISTS fortune_telling
+    ->   CHARACTER SET utf8mb4
+    ->   COLLATE utf8mb4_0900_ai_ci;
+Query OK, 1 row affected (0.007 sec)
+
+# データベース表示
+MySQL [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customer_info      |
+| fortune_telling    |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+6 rows in set (0.002 sec)
+
+# データベース選択
+MySQL [(none)]> USE fortune_telling;
+Database changed
+
+# テーブル作成
+MySQL [fortune_telling]> DROP TABLE IF EXISTS results;
+Query OK, 0 rows affected, 1 warning (0.005 sec)
+
+MySQL [fortune_telling]> CREATE TABLE results (
+    ->   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    ->   number VARCHAR(10) NOT NULL,
+    ->   fortune_rank VARCHAR(10) NOT NULL,
+    ->   message VARCHAR(255) NOT NULL,
+    ->   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+Query OK, 0 rows affected (0.033 sec)
+
+# テーブル確認
+MySQL [fortune_telling]> DESCRIBE results;
++--------------+--------------+------+-----+-------------------+-------------------+
+| Field        | Type         | Null | Key | Default           | Extra             |
++--------------+--------------+------+-----+-------------------+-------------------+
+| id           | bigint       | NO   | PRI | NULL              | auto_increment    |
+| number       | varchar(10)  | NO   |     | NULL              |                   |
+| fortune_rank | varchar(10)  | NO   |     | NULL              |                   |
+| message      | varchar(255) | NO   |     | NULL              |                   |
+| created_at   | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++--------------+--------------+------+-----+-------------------+-------------------+
+5 rows in set (0.002 sec)
+
+# データ登録
+MySQL [fortune_telling]> INSERT INTO results (number, fortune_rank, message) VALUES
+    -> ('一', '大吉', '新しいアイデアに挑戦すると吉！'),
+    -> ('二', '中吉', '朝の散歩で運気アップ。'),
+    -> ('三', '小吉', 'メール整理でチャンス到来。'),
+    -> ('四', '末吉', '焦らず準備を整えると好転。'),
+    -> ('五', '凶', '無理は禁物。こまめな休憩を。'),
+    -> ('六', '大吉', 'ありがとうを先に言うと良縁。'),
+    -> ('七', '中吉', '机を片付けると運気が巡る。'),
+    -> ('八', '小吉', '丁寧な言葉遣いが鍵。'),
+    -> ('九', '末吉', '背伸びより継続を選ぼう。'),
+    -> ('十', '凶', '夜更かしは控えて体調第一。');
+Query OK, 10 rows affected (0.003 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+# データ確認
+MySQL [fortune_telling]> SELECT * FROM results;
++----+--------+--------------+-----------------------------------------------+---------------------+
+| id | number | fortune_rank | message                                       | created_at          |
++----+--------+--------------+-----------------------------------------------+---------------------+
+|  1 | 一     | 大吉         | 新しいアイデアに挑戦すると吉！                | 2025-10-07 08:44:23 |
+|  2 | 二     | 中吉         | 朝の散歩で運気アップ。                        | 2025-10-07 08:44:23 |
+|  3 | 三     | 小吉         | メール整理でチャンス到来。                    | 2025-10-07 08:44:23 |
+|  4 | 四     | 末吉         | 焦らず準備を整えると好転。                    | 2025-10-07 08:44:23 |
+|  5 | 五     | 凶           | 無理は禁物。こまめな休憩を。                  | 2025-10-07 08:44:23 |
+|  6 | 六     | 大吉         | ありがとうを先に言うと良縁。                  | 2025-10-07 08:44:23 |
+|  7 | 七     | 中吉         | 机を片付けると運気が巡る。                    | 2025-10-07 08:44:23 |
+|  8 | 八     | 小吉         | 丁寧な言葉遣いが鍵。                          | 2025-10-07 08:44:23 |
+|  9 | 九     | 末吉         | 背伸びより継続を選ぼう。                      | 2025-10-07 08:44:23 |
+| 10 | 十     | 凶           | 夜更かしは控えて体調第一。                    | 2025-10-07 08:44:23 |
++----+--------+--------------+-----------------------------------------------+---------------------+
+10 rows in set (0.001 sec)
+
+MySQL [fortune_telling]> exit
+Bye
+~ $ 
