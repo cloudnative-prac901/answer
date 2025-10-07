@@ -22,8 +22,8 @@ export class RdsStack extends cdk.Stack {
     super(scope, id, props);
 
     // 4. シークレット作成（admin）
-    this.dbSecret = new rds.DatabaseSecret(this, 'CustomerInfoDbSecret', {
-      secretName: 'customer-info-db-credentials',
+    this.dbSecret = new rds.DatabaseSecret(this, 'AdminDbSecret', {
+      secretName: 'admin-db-credentials',
       username: 'admin',
     });
 
@@ -44,7 +44,7 @@ export class RdsStack extends cdk.Stack {
       engine: rds.DatabaseInstanceEngine.mysql({
         version: rds.MysqlEngineVersion.VER_8_0_42,
       }),
-      instanceIdentifier: 'customer-info-db',      // ★RDS インスタンス名
+      instanceIdentifier: 'application-db',      // ★RDS インスタンス名
       vpc: props.vpc,
       vpcSubnets: { subnetGroupName: 'db-private' },
       instanceType: new ec2.InstanceType(process.env.DB_INSTANCE_TYPE ?? 't3.micro'),
@@ -62,10 +62,10 @@ export class RdsStack extends cdk.Stack {
     this.dbHost = this.dbInstance.dbInstanceEndpointAddress;
     
     // 7. 出力
-    new cdk.CfnOutput(this, 'CustomerInfoDbEndpoint', {
+    new cdk.CfnOutput(this, 'ApplicationDbEndpoint', {
       value: this.dbInstance.dbInstanceEndpointAddress,
     });
-    new cdk.CfnOutput(this, 'CustomerInfoDbSecretName', {
+    new cdk.CfnOutput(this, 'AdminDbSecretName', {
       value: this.dbSecret.secretName,
     });
     new cdk.CfnOutput(this, 'AppSecretName', {
