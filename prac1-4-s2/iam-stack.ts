@@ -79,6 +79,10 @@ export class IamStack extends cdk.Stack {
     this.ecsTaskExecutionRole.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
     );
+    this.ecsTaskExecutionRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams'],
+      resources: ['*']
+    }));
 
     // 7. ECS AppTaskロール作成
     this.appTaskRole = new iam.Role(this, 'AppTaskRole', {
