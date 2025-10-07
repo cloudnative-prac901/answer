@@ -89,15 +89,17 @@ const ecs2 = new Ecs2Stack(app, 'Ecs2Stack', {
 // CodeConnection
 const conn = new ConnectionStack(app, 'ConnectionStack', { env });
 
-// IAM
+// IAM  ★複数のデータを渡せるように一部パラメータを配列化
 const iam = new IamStack(app, 'IamStack', {
   env,
-  ecrRepoName : 'customer-info/app',
-  pipelineName: 'CustomerInfoPipeline',
-  ghOwner     : 'xxx',  // GitHubユーザー名
-  ghRepo      : 'customer-info',  // GitHubリポジトリ名
+  ecrRepoNames: ['customer-info/app', 'fortune-telling/app'],
+  pipelineNames: ['CustomerInfoPipeline', 'FortuneTellingPipeline'],
+  ghRepos: [
+    { owner: 'xxx', repo: 'customer-info', branches: ['main'] },
+    { owner: 'xxx', repo: 'fortune-telling', branches: ['main'] },
+  ],
   gitHubConnectionArn: conn.connectionArn,
-  appSecretArn: rds.appSecret.secretArn,  // アプリケーション用の認証情報
+  appSecretArns: [ rds.appSecret.secretArn, rds.fortuneAppSecret.secretArn ],  // アプリケーション用の認証情報
 });
 
 // CodeBuild
