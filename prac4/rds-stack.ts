@@ -16,6 +16,7 @@ export class RdsStack extends cdk.Stack {
   public readonly dbInstance: rds.DatabaseInstance;
   public readonly dbSecret: secretsmanager.ISecret;
   public readonly appSecret: secretsmanager.ISecret;
+  public readonly fortuneAppSecret: secretsmanager.ISecret;  // ★追加
   public readonly dbHost: string;
 
   constructor(scope: Construct, id: string, props: RdsStackProps) {
@@ -37,31 +38,41 @@ export class RdsStack extends cdk.Stack {
       },
     });
 
+    // 6. シークレット作成（fortune 用）  ★セクション追加
+    this.fortuneAppSecret = new secretsmanager.Secret(this, 'FortuneTellingAppSecret', {
+      secretName: 'fortune-telling-app-credentials',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'app_fortune_user' }),
+        generateStringKey: 'password',
+        excludePunctuation: true,
+      },
+    });
+
     this.appSecret = appSecret;
 
-    // 6. RDS MySQLインスタンス作成
+    // 7. RDS MySQLインスタンス作成
     this.dbInstance = new rds.DatabaseInstance(this, 'ApplicationDb', {
       engine: rds.DatabaseInstanceEngine.mysql({
         version: rds.MysqlEngineVersion.VER_8_0_42,
       }),
-      instanceIdentifier: 'application-db',      // ★RDS インスタンス名
+      instanceIdentifier: 'application-db',      // RDS インスタンス名
       vpc: props.vpc,
       vpcSubnets: { subnetGroupName: 'db-private' },
       instanceType: new ec2.InstanceType(process.env.DB_INSTANCE_TYPE ?? 't3.micro'),
       securityGroups: [props.dbSg],
-      credentials: rds.Credentials.fromSecret(this.dbSecret),
+      credentials: rds.Credentials.fromSecret(this.dbSecret),  // admin
       multiAz: false,
       storageType: rds.StorageType.GP3,
       allocatedStorage: 20,
       maxAllocatedStorage: 100,
       deletionProtection: false,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      databaseName: 'customer_info',              // ★初期DB名
+      databaseName: 'customer_info',              // 初期DB名
     });
 
     this.dbHost = this.dbInstance.dbInstanceEndpointAddress;
     
-    // 7. 出力
+    // 8. 出力
     new cdk.CfnOutput(this, 'ApplicationDbEndpoint', {
       value: this.dbInstance.dbInstanceEndpointAddress,
     });
@@ -73,6 +84,13 @@ export class RdsStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, 'AppSecretArn', {
       value: this.appSecret.secretArn,
+    });
+    // ★追加　FortuneTellingアプリのシークレット情報
+    new cdk.CfnOutput(this, 'FortuneAppSecretName', {
+      value: this.fortuneAppSecret.secretName,
+    });
+    new cdk.CfnOutput(this, 'FortuneAppSecretArn', {
+      value: this.fortuneAppSecret.secretArn,
     });
   }
 }
