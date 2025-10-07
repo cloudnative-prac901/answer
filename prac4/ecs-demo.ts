@@ -9,6 +9,7 @@ import { Alb2Stack } from '../lib/alb2-stack';  //★追加
 import { EcrStack } from '../lib/ecr-stack';
 import { RdsStack } from '../lib/rds-stack';
 import { EcsStack } from '../lib/ecs-stack';
+import { Ecs2Stack } from '../lib/ecs2-stack';  //★追加
 import { ConnectionStack } from '../lib/connection-stack';
 import { IamStack } from '../lib/iam-stack';
 import { BuildStack } from '../lib/build-stack';
@@ -67,14 +68,22 @@ const rds = new RdsStack(app, 'RdsStack', {
   dbSg: net.dbSg,
 });
 
-// ECS / Fargate
+// ECS / Fargate for CustomerInfoApp
 const ecs = new EcsStack(app, 'EcsStack', {
   env,
   vpc        : net.vpc,
   ecsSg      : net.ecsSg,
-  repo       : ecr.repository,
+  repo       : ecr.customerInfoRepo,  // ★変数名を修正
   targetGroup: alb.tgBlue,
-  //targetGroup: alb.targetGroup,
+});
+
+// ECS / Fargate for FortuneTellingApp  ★セクション追加
+const ecs2 = new EcsStack(app, 'Ecs2Stack', {
+  env,
+  vpc        : net.vpc,
+  ecsSg      : net.ecs2Sg,
+  repo       : ecr.fortuneTellingRepo,
+  targetGroup: alb.tgBlue2,
 });
 
 // CodeConnection
