@@ -54,7 +54,7 @@ const alb = new AlbStack(app, 'AlbStack', {
 const alb2 = new Alb2Stack(app, 'Alb2Stack', {
   env,
   vpc: net.vpc,
-  albSg: net.albSg,
+  albSg: net.alb2Sg,
 });
 
 // ECR
