@@ -134,7 +134,7 @@ const deploy = new DeployStack(app, 'DeployStack', {
 });
 
 // CodeDeploy for fortune-telling  ★セクション追加
-const deploy2 = new Deploy2Stack(app, 'DeployStack', {
+const deploy2 = new Deploy2Stack(app, 'Deploy2Stack', {
   env,
   clusterName: ecs2.cluster.clusterName,
   serviceName: ecs2.service.serviceName,
