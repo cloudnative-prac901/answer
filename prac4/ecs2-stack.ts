@@ -10,7 +10,7 @@ import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as cw  from 'aws-cdk-lib/aws-cloudwatch';
 
 // 2. インタフェース定義
-export interface EcsStackProps extends StackProps {
+export interface Ecs2StackProps extends StackProps {
   vpc         : ec2.IVpc;
   ecsSg       : ec2.ISecurityGroup;
   repo        : ecr.IRepository;
@@ -18,17 +18,17 @@ export interface EcsStackProps extends StackProps {
 }
 
 // 3. スタック初期化
-export class EcsStack extends Stack {
+export class Ecs2Stack extends Stack {
   public readonly cluster: ecs.Cluster;
   public readonly service: ecs.FargateService;
 
-  constructor(scope: Construct, id: string, props: EcsStackProps) {
+  constructor(scope: Construct, id: string, props: Ecs2StackProps) {
     super(scope, id, props);
 
-    // 4. ECSクラスタ作成
+    // 4. ECSクラスタ作成（FortuneTelling用クラスタ）
     this.cluster = new ecs.Cluster(this, 'AppCluster', {
       vpc: props.vpc,
-      clusterName: 'ecs-app-cluster',
+      clusterName: 'fortune-telling-cluster',
       containerInsights: true,
     });
 
@@ -45,15 +45,12 @@ export class EcsStack extends Stack {
     });
 
     // 6. Cloudwatchロググループ設定
-    const logGroupName = '/ecs/customer-info';
+    const logGroupName = '/ecs/fortune-telling';
 
     let logGroup: logs.ILogGroup;
-
     try {
-      // 既存を参照（あれば CDK は新規作成しない）
       logGroup = logs.LogGroup.fromLogGroupName(this, 'ExistingLogGroup', logGroupName);
     } catch {
-      // 存在しなければ作成
       logGroup = new logs.LogGroup(this, 'NewLogGroup', {
         logGroupName,
         retention: logs.RetentionDays.ONE_WEEK,
@@ -67,13 +64,13 @@ export class EcsStack extends Stack {
       memoryLimitMiB: 512,
       executionRole: execRole,
       taskRole: taskRole,
-      family: 'customer-info-task',
+      family: 'fortune-telling-task',
     });
 
     taskDef.addContainer('app', {
-      image: ecs.ContainerImage.fromEcrRepository(props.repo, 'v0.1.1'),
+      image: ecs.ContainerImage.fromEcrRepository(props.repo, 'v0.2.2'),
       logging: ecs.LogDrivers.awsLogs({
-        streamPrefix: 'customer-info',
+        streamPrefix: 'fortune-telling',
         logGroup,
       }),
       portMappings: [{ containerPort: 80 }],
@@ -91,7 +88,7 @@ export class EcsStack extends Stack {
       },
       environment: {
         ENVIRONMENT: 'production',
-        APP_NAME: 'customer-info',
+        APP_NAME: 'fortune-telling',
       },
     });
 
@@ -100,7 +97,7 @@ export class EcsStack extends Stack {
       cluster: this.cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
-      serviceName: 'customer-info-service',
+      serviceName: 'fortune-telling-service',
       securityGroups: [props.ecsSg],
       vpcSubnets: props.vpc.selectSubnets({ subnetGroupName: 'ecs-private' }),
       enableExecuteCommand: true,
