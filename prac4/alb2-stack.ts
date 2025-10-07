@@ -46,7 +46,7 @@ export class Alb2Stack extends Stack {
 
     // 6. ターゲットグループ作成
     // Blue/Green 用ターゲットグループ（HTTP:80）
-    this.tgBlue = new elbv2.ApplicationTargetGroup(this, 'TgBlue2', {
+    this.tgBlue = new elbv2.ApplicationTargetGroup(this, 'TgBlue', {
       vpc: props.vpc,
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
@@ -54,7 +54,7 @@ export class Alb2Stack extends Stack {
       healthCheck: { path: '/', interval: Duration.seconds(30) },
     });
 
-    this.tgGreen = new elbv2.ApplicationTargetGroup(this, 'TgGreen2', {
+    this.tgGreen = new elbv2.ApplicationTargetGroup(this, 'TgGreen', {
       vpc: props.vpc,
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
@@ -64,14 +64,14 @@ export class Alb2Stack extends Stack {
 
     // 7. HTTPリスナー（本番/テスト）
     // 本番リスナー (80)：初期は Blue を適用
-    this.listenerProd = alb2.addListener('HttpListenerProd2', {
+    this.listenerProd = alb2.addListener('HttpListenerProd', {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgBlue],
     });
 
     // テストリスナー (9001)：初期は Green を適用
-    this.listenerTest = alb2.addListener('HttpListenerTest2', {
+    this.listenerTest = alb2.addListener('HttpListenerTest', {
       port: 9001,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgGreen],
