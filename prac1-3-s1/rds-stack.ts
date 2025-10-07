@@ -40,7 +40,7 @@ export class RdsStack extends cdk.Stack {
     this.appSecret = appSecret;
 
     // 6. RDS MySQLインスタンス作成
-    this.dbInstance = new rds.DatabaseInstance(this, 'CustomerInfoDb', {
+    this.dbInstance = new rds.DatabaseInstance(this, 'ApplicationDb', {
       engine: rds.DatabaseInstanceEngine.mysql({
         version: rds.MysqlEngineVersion.VER_8_0_42,
       }),
