@@ -81,7 +81,7 @@ const ecs = new EcsStack(app, 'EcsStack', {
 const ecs2 = new EcsStack(app, 'Ecs2Stack', {
   env,
   vpc        : net.vpc,
-  ecsSg      : net.ecs2Sg,
+  ecsSg      : net.ecsSg,
   repo       : ecr.fortuneTellingRepo,
   targetGroup: alb.tgBlue2,
 });
