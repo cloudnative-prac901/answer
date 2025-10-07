@@ -17,11 +17,11 @@ export class Alb2Stack extends Stack {
   public readonly alb2DnsName: string;
 
   // B/Gデプロイ用リスナーおよびターゲットグループ
-  public readonly listenerProd2: elbv2.ApplicationListener; // 本番:80ポート
-  public readonly listenerTest2: elbv2.ApplicationListener; // テスト:9001ポート
+  public readonly listenerProd: elbv2.ApplicationListener; // 本番:80ポート
+  public readonly listenerTest: elbv2.ApplicationListener; // テスト:9001ポート
 
-  public readonly tgBlue2 : elbv2.ApplicationTargetGroup;   // 初期：本番
-  public readonly tgGreen2: elbv2.ApplicationTargetGroup;   // 初期：テスト
+  public readonly tgBlue : elbv2.ApplicationTargetGroup;   // 初期：本番
+  public readonly tgGreen: elbv2.ApplicationTargetGroup;   // 初期：テスト
 
   // 4. スタック初期化
   constructor(scope: Construct, id: string, props: Alb2StackProps) {
@@ -46,7 +46,7 @@ export class Alb2Stack extends Stack {
 
     // 6. ターゲットグループ作成
     // Blue/Green 用ターゲットグループ（HTTP:80）
-    this.tgBlue2 = new elbv2.ApplicationTargetGroup(this, 'TgBlue2', {
+    this.tgBlue = new elbv2.ApplicationTargetGroup(this, 'TgBlue2', {
       vpc: props.vpc,
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
@@ -54,7 +54,7 @@ export class Alb2Stack extends Stack {
       healthCheck: { path: '/', interval: Duration.seconds(30) },
     });
 
-    this.tgGreen2 = new elbv2.ApplicationTargetGroup(this, 'TgGreen2', {
+    this.tgGreen = new elbv2.ApplicationTargetGroup(this, 'TgGreen2', {
       vpc: props.vpc,
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
@@ -64,17 +64,17 @@ export class Alb2Stack extends Stack {
 
     // 7. HTTPリスナー（本番/テスト）
     // 本番リスナー (80)：初期は Blue を適用
-    this.listenerProd2 = alb2.addListener('HttpListenerProd2', {
+    this.listenerProd = alb2.addListener('HttpListenerProd2', {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
-      defaultTargetGroups: [this.tgBlue2],
+      defaultTargetGroups: [this.tgBlue],
     });
 
     // テストリスナー (9001)：初期は Green を適用
-    this.listenerTest2 = alb2.addListener('HttpListenerTest2', {
+    this.listenerTest = alb2.addListener('HttpListenerTest2', {
       port: 9001,
       protocol: elbv2.ApplicationProtocol.HTTP,
-      defaultTargetGroups: [this.tgGreen2],
+      defaultTargetGroups: [this.tgGreen],
     });
 
     // 8. WAFルール（BadBot ブロック）※1つめと同内容
@@ -138,13 +138,12 @@ export class Alb2Stack extends Stack {
     new CfnOutput(this, 'Alb2DnsName',        { value: alb2.loadBalancerDnsName  });
     new CfnOutput(this, 'Alb2WebAclArn',      { value: webAcl2.attrArn           });
     // 本番/テスト用リスナーの出力を追加
-    new CfnOutput(this, 'ProdListenerArn2',   { value: this.listenerProd2.listenerArn });
-    new CfnOutput(this, 'TestListenerArn2',   { value: 
-    this.listenerTest2.listenerArn });
+    new CfnOutput(this, 'ProdListenerArn',   { value: this.listenerProd.listenerArn });
+    new CfnOutput(this, 'TestListenerArn',   { value: this.listenerTest.listenerArn });
     // B/Gデプロイ用ターゲットグループの名前およびARN
-    new CfnOutput(this, 'TgBlue2Name',        { value: this.tgBlue2.targetGroupName });
-    new CfnOutput(this, 'TgGreen2Name',       { value: this.tgGreen2.targetGroupName });
-    new CfnOutput(this, 'TgBlue2Arn',         { value: this.tgBlue2.targetGroupArn });
-    new CfnOutput(this, 'TgGreen2Arn',        { value: this.tgGreen2.targetGroupArn });
+    new CfnOutput(this, 'TgBlueName',        { value: this.tgBlue.targetGroupName });
+    new CfnOutput(this, 'TgGreenName',       { value: this.tgGreen.targetGroupName });
+    new CfnOutput(this, 'TgBlueArn',         { value: this.tgBlue.targetGroupArn });
+    new CfnOutput(this, 'TgGreenArn',        { value: this.tgGreen.targetGroupArn });
   }
 }
