@@ -8,7 +8,7 @@ import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 // 2. インタフェース定義
-export interface PipelineStackProps extends cdk.StackProps {
+export interface Pipeline2StackProps extends cdk.StackProps {  // パイプラインスタック名の修正
   pipelineName: string;
   codeBuildRoleArn: string;     // IAMロールの参照
   codeDeployRoleArn: string;    // IAMロールの参照
@@ -31,8 +31,8 @@ export interface PipelineStackProps extends cdk.StackProps {
 }
 
 // 3. スタック初期化
-export class PipelineStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: PipelineStackProps) {
+export class Pipeline2Stack extends cdk.Stack {  // パイプラインスタック名の修正
+  constructor(scope: Construct, id: string, props: Pipeline2StackProps) {
     super(scope, id, props);
 
     // 既存ロールを import
@@ -44,7 +44,7 @@ export class PipelineStack extends cdk.Stack {
     );
     // 既存 CodeBuild プロジェクト（Privileged: ON 前提）
     const buildProject = codebuild.Project.fromProjectName(
-      this, 'BuildProject', 'customer-info-app',
+      this, 'BuildProject', 'fortune-telling-app',  // fortune-telling-appプロジェクトを指定
     );
     // 既存 CodeDeploy アプリケーション / デプロイメントグループ
     const app = codedeploy.EcsApplication.fromEcsApplicationName(
@@ -59,7 +59,7 @@ export class PipelineStack extends cdk.Stack {
 
     // 4. CodePipeline作成
     const pipeline = new codepipeline.Pipeline(this, 'Pipeline', {
-      pipelineName: props.pipelineName,
+      pipelineName: props.pipelineName ?? 'FortuneTellingPipeline',  // パイプライン名
       role: codePipelineRole,
       stages: [
 
@@ -93,10 +93,9 @@ export class PipelineStack extends cdk.Stack {
                 ECR_REPO:       { value: props.ecrRepoName },
                 EXEC_ROLE_ARN:  { value: props.ecsTaskExecutionRoleArn },
                 TASK_ROLE_ARN:  { value: props.ecsTaskRoleArn ?? props.ecsTaskExecutionRoleArn },
-                DB_HOST:        { value: props.dbHost },
+                DB_HOST:        { value: props.dbHost ?? '' },
                 DB_SECRET_ARN:  { value: props.dbSecretArn ?? '' },
               },
-              //role: codeBuildRole, // 明示：インポートした既存ロールを使用
             }),
           ],
         },
