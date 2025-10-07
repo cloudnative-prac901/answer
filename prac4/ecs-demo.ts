@@ -83,7 +83,7 @@ const ecs2 = new EcsStack(app, 'Ecs2Stack', {
   vpc        : net.vpc,
   ecsSg      : net.ecsSg,
   repo       : ecr.fortuneTellingRepo,
-  targetGroup: alb.tgBlue2,
+  targetGroup: alb2.tgBlue2,
 });
 
 // CodeConnection
