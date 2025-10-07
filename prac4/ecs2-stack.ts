@@ -39,26 +39,22 @@ export class Ecs2Stack extends Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
       ],
     });
+    
+    execRole.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents',
+        'logs:DescribeLogStreams',
+      ],
+      resources: ['*'],
+    }));
 
     const taskRole = new iam.Role(this, 'AppTaskRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
 
-    // 6. Cloudwatchロググループ設定
-    const logGroupName = '/ecs/fortune-telling';
-
-    let logGroup: logs.ILogGroup;
-    try {
-      logGroup = logs.LogGroup.fromLogGroupName(this, 'ExistingLogGroup', logGroupName);
-    } catch {
-      logGroup = new logs.LogGroup(this, 'NewLogGroup', {
-        logGroupName,
-        retention: logs.RetentionDays.ONE_WEEK,
-        removalPolicy: RemovalPolicy.RETAIN,
-      });
-    }
-
-    // 7. タスク定義
+    // 6. タスク定義
     const taskDef = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       cpu: 256,
       memoryLimitMiB: 512,
@@ -71,7 +67,6 @@ export class Ecs2Stack extends Stack {
       image: ecs.ContainerImage.fromEcrRepository(props.repo, 'v0.2.2'),
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'fortune-telling',
-        logGroup,
       }),
       portMappings: [{ containerPort: 80 }],
 
@@ -92,7 +87,7 @@ export class Ecs2Stack extends Stack {
       },
     });
 
-    // 8. サービス定義
+    // 7. サービス定義
     this.service = new ecs.FargateService(this, 'AppService', {
       cluster: this.cluster,
       taskDefinition: taskDef,
@@ -105,20 +100,20 @@ export class Ecs2Stack extends Stack {
       deploymentController: { type: ecs.DeploymentControllerType.CODE_DEPLOY },
     });
 
-    // 9. ALBターゲットグループ登録
+    // 8. ALBターゲットグループ登録
     this.service.attachToApplicationTargetGroup(props.targetGroup);
 
-    // 10. オートスケール設定（任意）
+    // 9. オートスケール設定（任意）
     const scalable = this.service.autoScaleTaskCount({ minCapacity: 2, maxCapacity: 4 });
 
-    // 10-1 CPU 50% でターゲット追跡
+    // 9-1 CPU 50% でターゲット追跡
     scalable.scaleOnCpuUtilization('Cpu50', {
       targetUtilizationPercent: 50,
       scaleInCooldown : Duration.seconds(60),
       scaleOutCooldown: Duration.seconds(60),
     });
 
-    // 10-2 ALB リクエスト 100 req/tgt/sec
+    // 9-2 ALB リクエスト 100 req/tgt/sec
     scalable.scaleOnRequestCount('Req100', {
       requestsPerTarget: 100,
       targetGroup: props.targetGroup,
@@ -126,7 +121,7 @@ export class Ecs2Stack extends Stack {
       scaleOutCooldown: Duration.seconds(60),
     });
 
-    // 11. 出力
+    // 10. 出力
     new CfnOutput(this, 'ClusterArn', { value: this.cluster.clusterArn });
     new CfnOutput(this, 'ServiceName', { value: this.service.serviceName });
     new CfnOutput(this, 'TaskFamily',  { value: taskDef.family });
