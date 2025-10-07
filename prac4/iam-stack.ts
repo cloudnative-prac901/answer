@@ -6,12 +6,11 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 // 2. インタフェース定義
 export interface IamStackProps extends cdk.StackProps {
-  ecrRepoName: string;
-  pipelineName: string;
-  ghOwner: string;                 // GitHub org/user
-  ghRepo: string;                  // GitHub repo
-  gitHubConnectionArn?: string;    // Use CodeConnections
-  appSecretArn?: string;           // アプリ用DBユーザーのSecret ARN（任意）
+  ecrRepoNames: string[];      // ['customer-info/app', 'fortune-telling/app']
+  pipelineNames: string[];     // ['CustomerInfoPipeline', 'FortuneTellingPipeline']
+  ghRepos: Array<{ owner: string; repo: string; branches?: string[] }>;
+  gitHubConnectionArn?: string;
+  appSecretArns: string[];     // ['arn:aws:secretsmanager:...:customer-info', 'arn:aws:secretsmanager:...:fortune-telling']
 }
 
 // 3. スタック初期化
@@ -27,8 +26,14 @@ export class IamStack extends cdk.Stack {
     super(scope, id, props);
 
     const { account, region } = cdk.Stack.of(this);
-    const ecrRepoArn  = `arn:aws:ecr:${region}:${account}:repository/${props.ecrRepoName}`;
-    const pipelineArn = `arn:aws:codepipeline:${region}:${account}:${props.pipelineName}`;
+
+    // ARN配列を生成
+    const ecrRepoArns = props.ecrRepoNames.map(
+      name => `arn:aws:ecr:${region}:${account}:repository/${name}`
+    );
+    const pipelineArns = props.pipelineNames.map(
+      name => `arn:aws:codepipeline:${region}:${account}:${name}`
+    );
 
     // 4. CodeBuildロール作成
     this.codeBuildRole = new iam.Role(this, 'CodeBuildRole', {
@@ -50,7 +55,7 @@ export class IamStack extends cdk.Stack {
         'ecr:BatchCheckLayerAvailability','ecr:InitiateLayerUpload','ecr:UploadLayerPart',
         'ecr:CompleteLayerUpload','ecr:PutImage','ecr:BatchGetImage','ecr:GetDownloadUrlForLayer',
       ],
-      resources: [ecrRepoArn],
+      resources: ecrRepoArns,
     }));
     // Artifact S3/KMS
     this.codeBuildRole.addToPolicy(new iam.PolicyStatement({
@@ -80,29 +85,31 @@ export class IamStack extends cdk.Stack {
       iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCodeDeployRoleForECS')
     );
 
-    // 6. ECS TaskExecutionロール作成
+    // 6. ECS TaskExecutionロール
     this.ecsTaskExecutionRole = new iam.Role(this, 'EcsTaskExecutionRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
-      description: 'Execution role for ECS tasks to pull images & write logs',
+      description: 'Execution role for ECS tasks',
     });
     this.ecsTaskExecutionRole.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy')
     );
 
-    // 7. ECS AppTaskロール作成
+    // 7. AppTaskロール
     this.appTaskRole = new iam.Role(this, 'AppTaskRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       description: 'Application task role for ECS tasks',
     });
-    
-    // 8. Secrets Manager（アプリ用シークレットリソース）
-    if (props.appSecretArn) {
-      const appSecret = secretsmanager.Secret.fromSecretCompleteArn(this, 'AppSecret', props.appSecretArn);
-      appSecret.grantRead(this.appTaskRole); // secretsmanager:GetSecretValue など
-      appSecret.grantRead(this.ecsTaskExecutionRole);
+
+    // 8. Secrets Manager（アプリ単位）
+    if (props.appSecretArns?.length) {
+      props.appSecretArns.forEach((arn, idx) => {
+        const secret = secretsmanager.Secret.fromSecretCompleteArn(this, `AppSecret${idx}`, arn);
+        secret.grantRead(this.appTaskRole);
+        secret.grantRead(this.ecsTaskExecutionRole);
+      });
     }
 
-    // 9. CodePipelineロール作成
+    // 9. CodePipelineロール
     this.codePipelineRole = new iam.Role(this, 'CodePipelineRole', {
       assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
       description: 'Allows CodePipeline to orchestrate Source/Build/Deploy',
@@ -138,29 +145,31 @@ export class IamStack extends cdk.Stack {
       }));
     }
 
-    // 10. GitHub OIDCプロバイダー/ロール作成
-    // OIDCプロバイダー作成
+    // 10. GitHub OIDCプロバイダー
     const provider = new iam.OpenIdConnectProvider(this, 'GitHubOIDC', {
       url: 'https://token.actions.githubusercontent.com',
       clientIds: ['sts.amazonaws.com'],
     });
-    // main ブランチのみ許可
-    const subPattern = `repo:${props.ghOwner}/${props.ghRepo}:ref:refs/heads/main`;
 
-    // OIDCロール作成
+    // 複数リポ/ブランチを許可
+    const subPatterns = props.ghRepos.flatMap(r => {
+      const branches = r.branches && r.branches.length ? r.branches : ['main'];
+      return branches.map(b => `repo:${r.owner}/${r.repo}:ref:refs/heads/${b}`);
+    });
+
     this.githubOidcRole = new iam.Role(this, 'GitHubOIDCRole', {
       roleName: 'GitHubOIDCRole',
-      description: 'GitHub Actions OIDC role (main branch only)',
+      description: 'GitHub Actions OIDC role for multiple repos',
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' },
-        StringLike:   { 'token.actions.githubusercontent.com:sub': subPattern }
+        StringLike: { 'token.actions.githubusercontent.com:sub': subPatterns },
       }),
     });
 
-    // Pipeline
+    // 各Pipelineを実行可能にする
     this.githubOidcRole.addToPolicy(new iam.PolicyStatement({
       actions: ['codepipeline:StartPipelineExecution'],
-      resources: [pipelineArn],
+      resources: pipelineArns,
     }));
 
     // 11. 出力
@@ -170,8 +179,8 @@ export class IamStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ECSTaskExecutionRoleArn', { value: this.ecsTaskExecutionRole.roleArn });
     new cdk.CfnOutput(this, 'AppTaskRoleArn',          { value: this.appTaskRole.roleArn });
     new cdk.CfnOutput(this, 'GitHubOIDCRoleArn',       { value: this.githubOidcRole.roleArn });
-    new cdk.CfnOutput(this, 'GitHubOIDCRoleName',      { value: this.githubOidcRole.roleName });
-    new cdk.CfnOutput(this, 'TargetPipelineArn',       { value: pipelineArn });
-    new cdk.CfnOutput(this, 'TargetEcrRepoArn',        { value: ecrRepoArn });
+    new cdk.CfnOutput(this, 'TargetPipelineArns',      { value: pipelineArns.join(',') });
+    new cdk.CfnOutput(this, 'TargetEcrRepoArns',       { value: ecrRepoArns.join(',') });
+    new cdk.CfnOutput(this, 'TargetAppSecretArns',     { value: props.appSecretArns.join(',') });
   }
 }
