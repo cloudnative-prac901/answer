@@ -78,7 +78,7 @@ const ecs = new EcsStack(app, 'EcsStack', {
 });
 
 // ECS / Fargate for FortuneTellingApp  ★セクション追加
-const ecs2 = new EcsStack(app, 'Ecs2Stack', {
+const ecs2 = new Ecs2Stack(app, 'Ecs2Stack', {
   env,
   vpc        : net.vpc,
   ecsSg      : net.ecsSg,
