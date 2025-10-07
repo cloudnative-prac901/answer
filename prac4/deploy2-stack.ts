@@ -5,7 +5,7 @@ import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 // 2. インタフェース定義
-export interface DeployStackProps extends cdk.StackProps {
+export interface Deploy2StackProps extends cdk.StackProps {
   clusterName: string;  // ECSクラスター名
   serviceName: string;  // ECSサービス名
   prodListenerArn: string;  // 本番リスナー
@@ -18,11 +18,11 @@ export interface DeployStackProps extends cdk.StackProps {
 }
 
 // 3. スタック初期化
-export class DeployStack extends cdk.Stack {
+export class Deploy2Stack extends cdk.Stack {
   public readonly application: codedeploy.CfnApplication;
   public readonly deploymentGroup: codedeploy.CfnDeploymentGroup;
 
-  constructor(scope: Construct, id: string, props: DeployStackProps) {
+  constructor(scope: Construct, id: string, props: Deploy2StackProps) {
     super(scope, id, props);
 
     // 4. CodeDeployのApplication作成
