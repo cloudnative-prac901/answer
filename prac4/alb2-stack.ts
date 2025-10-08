@@ -6,15 +6,15 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
 
 // 2. インタフェース定義（1つめと同じ）
-export interface Alb2StackProps extends StackProps {
+export interface Alb2StackProps extends StackProps {  // ★スタック名の修正
   vpc        : ec2.IVpc;
   albSg      : ec2.ISecurityGroup;
   albSubnets?: ec2.SubnetSelection;   // 無指定なら 'alb-public' を自動選択
 }
 
 // 3. 公開プロパティ
-export class Alb2Stack extends Stack {
-  public readonly alb2DnsName: string;
+export class Alb2Stack extends Stack {  // ★スタック名の修正
+  public readonly albDnsName: string;
 
   // B/Gデプロイ用リスナーおよびターゲットグループ
   public readonly listenerProd: elbv2.ApplicationListener; // 本番:80ポート
@@ -24,11 +24,11 @@ export class Alb2Stack extends Stack {
   public readonly tgGreen: elbv2.ApplicationTargetGroup;   // 初期：テスト
 
   // 4. スタック初期化
-  constructor(scope: Construct, id: string, props: Alb2StackProps) {
+  constructor(scope: Construct, id: string, props: Alb2StackProps) {  // ★スタック名の修正
     super(scope, id, props);
 
     if (!props.albSg) {
-      throw new Error('Alb2Stack requires pre-created albSg from NetStack');
+      throw new Error('Alb2Stack requires pre-created albSg from NetStack');  // ★スタック名の修正
     }
 
     // サブネット選択（同一 AZ 重複を防ぐ）
@@ -36,11 +36,11 @@ export class Alb2Stack extends Stack {
       props.vpc.selectSubnets({ subnetGroupName: 'alb-public' });
 
     // 5. Application Load Balancer 作成（新規アプリ用）
-    const alb2 = new elbv2.ApplicationLoadBalancer(this, 'Alb2', {
+    const alb2 = new elbv2.ApplicationLoadBalancer(this, 'Alb2', {  // ★スタック名の修正
       vpc: props.vpc,
       internetFacing: true,
       securityGroup: props.albSg,
-      loadBalancerName: 'FortuneTellingAlb',
+      loadBalancerName: 'FortuneTellingAlb',  // ★ロードバランサー名を変更
       vpcSubnets: subnetSel,
     });
 
@@ -64,22 +64,22 @@ export class Alb2Stack extends Stack {
 
     // 7. HTTPリスナー（本番/テスト）
     // 本番リスナー (80)：初期は Blue を適用
-    this.listenerProd = alb2.addListener('HttpListenerProd', {
+    this.listenerProd = alb2.addListener('HttpListenerProd', {  // ★ALB名の修正
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgBlue],
     });
 
     // テストリスナー (9001)：初期は Green を適用
-    this.listenerTest = alb2.addListener('HttpListenerTest', {
+    this.listenerTest = alb2.addListener('HttpListenerTest', {  // ★ALB名の修正
       port: 9001,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [this.tgGreen],
     });
 
     // 8. WAFルール（BadBot ブロック）※1つめと同内容
-    const badBotRule2: wafv2.CfnWebACL.RuleProperty = {
-      name: 'BlockBadBotUA2',
+    const badBotRule2: wafv2.CfnWebACL.RuleProperty = {  // ★WAFルール名の修正
+      name: 'BlockBadBotUA2',                            // ★WAFルール名の修正
       priority: 0,
       action: { block: {} },
       statement: {
@@ -93,13 +93,13 @@ export class Alb2Stack extends Stack {
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         sampledRequestsEnabled: true,
-        metricName: 'BlockBadBotUA2',
+        metricName: 'BlockBadBotUA2',  // ★WAFメトリクス名の修正
       },
     };
 
     // 9. WAFルール（AWSマネージドルール）※1つめと同内容
-    const awsManagedCommon2: wafv2.CfnWebACL.RuleProperty = {
-      name: 'AWSManagedCommonRuleSet2',
+    const awsManagedCommon2: wafv2.CfnWebACL.RuleProperty = {  // ★WAFルール名の修正
+      name: 'AWSManagedCommonRuleSet2',                        // ★WAFルール名の修正
       priority: 1,
       overrideAction: { none: {} },
       statement: {
@@ -111,32 +111,32 @@ export class Alb2Stack extends Stack {
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         sampledRequestsEnabled: true,
-        metricName: 'AWSCommonRuleSet2',
+        metricName: 'AWSCommonRuleSet2',  // ★WAFメトリクス名の修正
       },
     };
 
     // 10. WebACL 作成（新規ALB用）
-    const webAcl2 = new wafv2.CfnWebACL(this, 'Alb2WebAcl', {
+    const webAcl2 = new wafv2.CfnWebACL(this, 'Alb2WebAcl', {  // ★WebACL名の修正
       scope: 'REGIONAL',
       defaultAction: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         sampledRequestsEnabled: true,
-        metricName: 'Alb2WebAcl',
+        metricName: 'Alb2WebAcl',  // ★WAFメトリクス名の修正
       },
-      rules: [badBotRule2, awsManagedCommon2],
+      rules: [badBotRule2, awsManagedCommon2],  // ★適用するルール名の修正
     });
 
     // 11. ALB と WebACL の関連付け
-    new wafv2.CfnWebACLAssociation(this, 'WebAclAssociation2', {
-      resourceArn: alb2.loadBalancerArn,
-      webAclArn  : webAcl2.attrArn,
+    new wafv2.CfnWebACLAssociation(this, 'WebAclAssociation2', {  // ★WebACL名の修正
+      resourceArn: alb2.loadBalancerArn,                          // ★ALB名の修正
+      webAclArn  : webAcl2.attrArn,                               // ★WebACL名の修正
     });
 
     // 12. 出力
-    this.alb2DnsName = alb2.loadBalancerDnsName;
-    new CfnOutput(this, 'Alb2DnsName',        { value: alb2.loadBalancerDnsName  });
-    new CfnOutput(this, 'Alb2WebAclArn',      { value: webAcl2.attrArn           });
+    this.albDnsName = alb2.loadBalancerDnsName;　　　　　　　　　　　　　　　　　　　　　// ★ALB名の修正
+    new CfnOutput(this, 'AlbDnsName',        { value: alb2.loadBalancerDnsName  });  // ★ALB名の修正
+    new CfnOutput(this, 'AlbWebAclArn',      { value: webAcl2.attrArn           });  // ★WebACL名の修正
     // 本番/テスト用リスナーの出力を追加
     new CfnOutput(this, 'ProdListenerArn',   { value: this.listenerProd.listenerArn });
     new CfnOutput(this, 'TestListenerArn',   { value: this.listenerTest.listenerArn });
