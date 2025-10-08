@@ -5,6 +5,8 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 // 2. インタフェース定義
+// ★外部から受け取るパラメータを配列で渡す仕様に変更
+// ★受け取るパラメータを倍に増やして良い（例：ecrRepoName/ecrRepoName2）
 export interface IamStackProps extends cdk.StackProps {
   ecrRepoNames: string[];      // ['customer-info/app', 'fortune-telling/app']
   pipelineNames: string[];     // ['CustomerInfoPipeline', 'FortuneTellingPipeline']
@@ -27,7 +29,7 @@ export class IamStack extends cdk.Stack {
 
     const { account, region } = cdk.Stack.of(this);
 
-    // ARN配列を生成
+    // ★ARNを配列で生成するよう処理を変更
     const ecrRepoArns = props.ecrRepoNames.map(
       name => `arn:aws:ecr:${region}:${account}:repository/${name}`
     );
@@ -55,7 +57,7 @@ export class IamStack extends cdk.Stack {
         'ecr:BatchCheckLayerAvailability','ecr:InitiateLayerUpload','ecr:UploadLayerPart',
         'ecr:CompleteLayerUpload','ecr:PutImage','ecr:BatchGetImage','ecr:GetDownloadUrlForLayer',
       ],
-      resources: ecrRepoArns,
+      resources: ecrRepoArns,  //★リポジトリARN配列を対象リソースに指定
     }));
     // Artifact S3/KMS
     this.codeBuildRole.addToPolicy(new iam.PolicyStatement({
@@ -67,13 +69,13 @@ export class IamStack extends cdk.Stack {
       resources: ['*'],
     }));
 
-    // CodeBuild Reports（pytestのJUnit等をレポートとして登録）　★追加
+    // CodeBuild Reports（pytestのJUnit等をレポートとして登録）
     this.codeBuildRole.addToPolicy(new iam.PolicyStatement({
       actions: [
         'codebuild:*Report*',   // Create/Update/Delete/List/Describe(Reports/ReportGroups) まとめて許可
         'codebuild:BatchPut*',  // BatchPutTestCases / BatchPutCodeCoverages など
       ],
-      resources: ['*'],         // （演習では広めに許可。必要に応じて report-group ARN に絞る）
+      resources: ['*'],
     }));
 
     // 5. CodeDeployロール作成
@@ -101,6 +103,7 @@ export class IamStack extends cdk.Stack {
     });
 
     // 8. Secrets Manager（アプリ単位）
+    // ★シークレットARNを配列にし、アプリケーション単位でシークレットの操作権限を付与
     if (props.appSecretArns?.length) {
       props.appSecretArns.forEach((arn, idx) => {
         const secret = secretsmanager.Secret.fromSecretCompleteArn(this, `AppSecret${idx}`, arn);
@@ -151,7 +154,7 @@ export class IamStack extends cdk.Stack {
       clientIds: ['sts.amazonaws.com'],
     });
 
-    // 複数リポ/ブランチを許可
+    // ★複数リポジトリ/ブランチを許可できるように変更
     const subPatterns = props.ghRepos.flatMap(r => {
       const branches = r.branches && r.branches.length ? r.branches : ['main'];
       return branches.map(b => `repo:${r.owner}/${r.repo}:ref:refs/heads/${b}`);
@@ -162,14 +165,14 @@ export class IamStack extends cdk.Stack {
       description: 'GitHub Actions OIDC role for multiple repos',
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' },
-        StringLike: { 'token.actions.githubusercontent.com:sub': subPatterns },
+        StringLike: { 'token.actions.githubusercontent.com:sub': subPatterns },  // 複数リポジトリに対応
       }),
     });
 
     // 各Pipelineを実行可能にする
     this.githubOidcRole.addToPolicy(new iam.PolicyStatement({
       actions: ['codepipeline:StartPipelineExecution'],
-      resources: pipelineArns,
+      resources: pipelineArns,  //★パイプラインARN配列を対象リソースに指定
     }));
 
     // 11. 出力
@@ -179,8 +182,8 @@ export class IamStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ECSTaskExecutionRoleArn', { value: this.ecsTaskExecutionRole.roleArn });
     new cdk.CfnOutput(this, 'AppTaskRoleArn',          { value: this.appTaskRole.roleArn });
     new cdk.CfnOutput(this, 'GitHubOIDCRoleArn',       { value: this.githubOidcRole.roleArn });
-    new cdk.CfnOutput(this, 'TargetPipelineArns',      { value: pipelineArns.join(',') });
-    new cdk.CfnOutput(this, 'TargetEcrRepoArns',       { value: ecrRepoArns.join(',') });
+    new cdk.CfnOutput(this, 'TargetPipelineArns',      { value: pipelineArns.join(',') });  // ★配列に変更
+    new cdk.CfnOutput(this, 'TargetEcrRepoArns',       { value: ecrRepoArns.join(',') });   // ★配列に変更
     new cdk.CfnOutput(this, 'TargetAppSecretArns',     { value: props.appSecretArns.join(',') });
   }
 }
