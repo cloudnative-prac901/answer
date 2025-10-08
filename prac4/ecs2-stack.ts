@@ -10,7 +10,7 @@ import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as cw  from 'aws-cdk-lib/aws-cloudwatch';
 
 // 2. インタフェース定義
-export interface Ecs2StackProps extends StackProps {
+export interface Ecs2StackProps extends StackProps {  // ★スタック名の修正
   vpc         : ec2.IVpc;
   ecsSg       : ec2.ISecurityGroup;
   repo        : ecr.IRepository;
@@ -18,17 +18,17 @@ export interface Ecs2StackProps extends StackProps {
 }
 
 // 3. スタック初期化
-export class Ecs2Stack extends Stack {
+export class Ecs2Stack extends Stack {  // ★スタック名の修正
   public readonly cluster: ecs.Cluster;
   public readonly service: ecs.FargateService;
 
-  constructor(scope: Construct, id: string, props: Ecs2StackProps) {
+  constructor(scope: Construct, id: string, props: Ecs2StackProps) {  // ★スタック名の修正
     super(scope, id, props);
 
     // 4. ECSクラスタ作成（FortuneTelling用クラスタ）
     this.cluster = new ecs.Cluster(this, 'AppCluster', {
       vpc: props.vpc,
-      clusterName: 'fortune-telling-cluster',
+      clusterName: 'fortune-telling-cluster',  // ★新規クラスター名も変更
       containerInsights: true,
     });
 
@@ -60,13 +60,13 @@ export class Ecs2Stack extends Stack {
       memoryLimitMiB: 512,
       executionRole: execRole,
       taskRole: taskRole,
-      family: 'fortune-telling-task',
+      family: 'fortune-telling-task',  // ★タスク定義名の変更
     });
 
     taskDef.addContainer('app', {
-      image: ecs.ContainerImage.fromEcrRepository(props.repo, 'v0.2.2'),
+      image: ecs.ContainerImage.fromEcrRepository(props.repo, 'v0.2.2'),  // ★version変更
       logging: ecs.LogDrivers.awsLogs({
-        streamPrefix: 'fortune-telling',
+        streamPrefix: 'fortune-telling',  // ★ロググループ名の修正
       }),
       portMappings: [{ containerPort: 80 }],
 
@@ -83,7 +83,7 @@ export class Ecs2Stack extends Stack {
       },
       environment: {
         ENVIRONMENT: 'production',
-        APP_NAME: 'fortune-telling',
+        APP_NAME: 'fortune-telling',  // ★アプリケーション名の修正
       },
     });
 
@@ -92,7 +92,7 @@ export class Ecs2Stack extends Stack {
       cluster: this.cluster,
       taskDefinition: taskDef,
       desiredCount: 2,
-      serviceName: 'fortune-telling-service',
+      serviceName: 'fortune-telling-service',  // ★サービス名の修正
       securityGroups: [props.ecsSg],
       vpcSubnets: props.vpc.selectSubnets({ subnetGroupName: 'ecs-private' }),
       enableExecuteCommand: true,
