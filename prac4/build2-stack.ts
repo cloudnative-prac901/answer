@@ -6,18 +6,18 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { Token } from 'aws-cdk-lib'; // Token 判定に使用
 
 // 2. インタフェース定義
-export interface Build2StackProps extends cdk.StackProps {  // スタック名修正
+export interface Build2StackProps extends cdk.StackProps {  // ★スタック名修正
   codeBuildRoleArn: string;         // CodeBuildRoleのARN
   ecrRepoName?: string;             // ECRリポジトリ名
   buildSpecFile?: string;           // buildspec.ymlのパス
 }
 
 // 3. スタック初期化
-export class Build2Stack extends cdk.Stack {  // スタック名修正
+export class Build2Stack extends cdk.Stack {  // ★スタック名修正
   public readonly project: codebuild.IProject;
   public readonly projectName: string;
 
-  constructor(scope: Construct, id: string, props: Build2StackProps) {  // スタック名修正
+  constructor(scope: Construct, id: string, props: Build2StackProps) {  // ★スタック名修正
     super(scope, id, props);
 
     // デプロイ先のアカウント、リージョンのセット
@@ -34,7 +34,7 @@ export class Build2Stack extends cdk.Stack {  // スタック名修正
     validateArnIfLiteral('codeBuildRoleArn', props.codeBuildRoleArn);
 
     // 5. ECRリポジトリの設定
-    const repoName    = props.ecrRepoName ?? 'fortune-telling/app';  // ECRリポジトリ名修正
+    const repoName    = props.ecrRepoName ?? 'fortune-telling/app';  // ★ECRリポジトリ名修正
     const ecrRegistry = `${account}.dkr.ecr.${region}.amazonaws.com`;
 
     // 6. CodeBuildRoleのインポート
@@ -44,7 +44,7 @@ export class Build2Stack extends cdk.Stack {  // スタック名修正
 
     // 7. CodeBuildプロジェクトの作成（CodePipelineから起動される）
     const project = new codebuild.PipelineProject(this, 'Project', {
-      projectName: 'fortune-telling-app',  // ビルドプロジェクト名
+      projectName: 'fortune-telling-app',  // ★ビルドプロジェクト名修正
       role,
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
