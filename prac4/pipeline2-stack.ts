@@ -8,7 +8,7 @@ import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 // 2. インタフェース定義
-export interface Pipeline2StackProps extends cdk.StackProps {  // パイプラインスタック名の修正
+export interface Pipeline2StackProps extends cdk.StackProps {  // ★パイプラインスタック名の修正
   pipelineName: string;
   codeBuildRoleArn: string;     // IAMロールの参照
   codeDeployRoleArn: string;    // IAMロールの参照
@@ -31,8 +31,8 @@ export interface Pipeline2StackProps extends cdk.StackProps {  // パイプラ�
 }
 
 // 3. スタック初期化
-export class Pipeline2Stack extends cdk.Stack {  // パイプラインスタック名の修正
-  constructor(scope: Construct, id: string, props: Pipeline2StackProps) {
+export class Pipeline2Stack extends cdk.Stack {  // ★パイプラインスタック名の修正
+  constructor(scope: Construct, id: string, props: Pipeline2StackProps) {  // ★パイプラインスタック名の修正
     super(scope, id, props);
 
     // 既存ロールを import
@@ -44,7 +44,7 @@ export class Pipeline2Stack extends cdk.Stack {  // パイプラインスタッ�
     );
     // 既存 CodeBuild プロジェクト（Privileged: ON 前提）
     const buildProject = codebuild.Project.fromProjectName(
-      this, 'BuildProject', 'fortune-telling-app',  // fortune-telling-appプロジェクトを指定
+      this, 'BuildProject', 'fortune-telling-app',  // ★fortune-telling-appプロジェクトを指定
     );
     // 既存 CodeDeploy アプリケーション / デプロイメントグループ
     const app = codedeploy.EcsApplication.fromEcsApplicationName(
@@ -59,7 +59,7 @@ export class Pipeline2Stack extends cdk.Stack {  // パイプラインスタッ�
 
     // 4. CodePipeline作成
     const pipeline = new codepipeline.Pipeline(this, 'Pipeline', {
-      pipelineName: props.pipelineName ?? 'FortuneTellingPipeline',  // パイプライン名
+      pipelineName: props.pipelineName ?? 'FortuneTellingPipeline',  // ★パイプライン名の修正
       role: codePipelineRole,
       stages: [
 
