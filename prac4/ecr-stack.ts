@@ -37,8 +37,8 @@ export class EcrStack extends cdk.Stack {
     this.fortuneTellingRepo.addLifecycleRule(lifecycleRule);  // 新規アプリ
 
     // 6. 出力
-    new cdk.CfnOutput(this, 'CustomerInfoAppRepoUri', {  // ★変数名を修正
-      value      : this.customerInfoRepo.repositoryUri,
+    new cdk.CfnOutput(this, 'CustomerInfoAppRepoUri', {
+      value      : this.customerInfoRepo.repositoryUri,  // ★変数名を修正
       description: 'ECR repository URI for customer-info/app',
       exportName : 'customerInfoAppRepoUri',
     });
