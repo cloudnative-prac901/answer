@@ -89,7 +89,7 @@ export class NetStack extends Stack {
 
     // ECS: ALBからHTTPアクセスを許可
     this.ecsSg.addIngressRule(this.albSg, ec2.Port.tcp(80), 'ALB-to-ECS');
-    this.ecsSg.addIngressRule(this.alb2Sg, ec2.Port.tcp(80), 'ALB2-to-ECS');
+    this.ecsSg.addIngressRule(this.alb2Sg, ec2.Port.tcp(80), 'ALB2-to-ECS');  // ★追加
 
     // DB: ECSおよびJumpBoxからMySQLアクセスを許可
     this.dbSg.addIngressRule(this.ecsSg, ec2.Port.tcp(3306), 'ECS-to-DB');
